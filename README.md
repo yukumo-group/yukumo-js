@@ -10,6 +10,7 @@ DEMO : [https://aquestalk-js.y52.dev](https://aquestalk-js.y52.dev)
 - ブラウザ上でAquesTalk(Win32版)をエミュレートして音声合成
 - 複数の音声(f1, f2, m1, m2, dvd, imd1, jgr, r1)に対応
 - TypeScript対応
+- [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM) / [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk) と組み合わせることで、漢字かな交じり文から読み上げ可能
 
 ## インストール
 
@@ -44,6 +45,47 @@ async function main() {
 
 main();
 ```
+
+### 漢字かな交じり文を読み上げる
+
+`aquestalk.js` の `run()` は AquesTalk 音声記号列を入力に取ります。
+通常の日本語文をそのまま読み上げたい場合は、`kanji2koe-openjtalk` で漢字かな交じり文を音声記号列に変換してから `aquestalk.js` に渡します。
+
+```bash
+npm install aquestalk.js kanji2koe-openjtalk
+```
+
+```typescript
+import { load as loadAquesTalk } from 'aquestalk.js';
+import { load as loadKanji2Koe } from 'kanji2koe-openjtalk';
+
+async function main() {
+  const kanji2koe = await loadKanji2Koe();
+  const aq = await loadAquesTalk('f1', {
+    memorySize: 1024 * 1024 * 1024,
+  });
+
+  const koe = kanji2koe.convert('今日は良い天気ですね。');
+  const wav = aq.run(koe, 100);
+
+  // 再生例 (ブラウザ環境)
+  const bytes = new ArrayBuffer(wav.byteLength);
+  new Uint8Array(bytes).set(wav);
+  const blob = new Blob([bytes], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+  const audio = new Audio(url);
+  await audio.play();
+  URL.revokeObjectURL(url);
+
+  await aq.destroy();
+}
+
+main();
+```
+
+関連:
+- GitHub: [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM)
+- npm: [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk)
 
 ## API
 
