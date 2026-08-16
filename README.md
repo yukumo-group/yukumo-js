@@ -56,12 +56,12 @@ npm install aquestalk.js kanji2koe-openjtalk
 ```
 
 ```typescript
-import { load as loadAquesTalk } from 'aquestalk.js';
+import { load as loadAquesTalk1 } from 'aquestalk.js';
 import { load as loadKanji2Koe } from 'kanji2koe-openjtalk';
 
 async function main() {
   const kanji2koe = await loadKanji2Koe();
-  const aq = await loadAquesTalk('f1', {
+  const aq = await loadAquesTalk1('f1', {
     memorySize: 1024 * 1024 * 1024,
   });
 
@@ -89,7 +89,7 @@ main();
 
 ## API
 
-### `load(voice: Voice, options?: Options): Promise<AquesTalk>`
+### `load(voice: Voice, options?: Options): Promise<AquesTalk1>`
 
 指定した音声（同梱アセット）を使用して初期化します。
 
@@ -100,7 +100,7 @@ main();
     - `wasmPath`: `v86.wasm` へのパスを個別に指定する場合に使用（デフォルトは自動解決）
     - `memorySize`: エミュレータに割り当てるメモリサイズ（MB）
 
-### `loadAquesTalk(zippath: string, dllpath: string, options?: Options): Promise<AquesTalk>`
+### `loadAquesTalk1(zippath: string, dllpath: string, options?: Options): Promise<AquesTalk1>`
 
 独自のzipファイルやDLLを使用して初期化します。
 
@@ -108,7 +108,7 @@ main();
 - `dllpath`: zip内のDLLファイルへの相対パス
 - `options`: 上記 `load` と同様
 
-### `AquesTalk` クラス
+### `AquesTalk1` クラス
 
 #### `run(koe: string, speed?: number): Uint8Array`
 

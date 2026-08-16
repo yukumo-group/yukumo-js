@@ -4,8 +4,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const nativeDir = path.join(__dirname, "../src/native");
-const outputTs = path.join(__dirname, "../src/native_code.ts");
+const nativeDir = path.join(__dirname, "../src/emu/native");
+const outputTs = path.join(__dirname, "../src/emu/native_code.ts");
 
 console.log("Building native code...");
 execSync("make clean && make", { cwd: nativeDir, stdio: "inherit" });
@@ -32,7 +32,7 @@ const binData = fs.readFileSync(binFile);
 const hexData = binData.toString("hex").match(/.{1,2}/g).map(h => `0x${h}`).join(", ");
 
 const tsContent = `/**
- * This file is auto-generated from C source code in src/native/
+ * This file is auto-generated from C source code in src/emu/native/
  * Do not edit manually.
  */
 

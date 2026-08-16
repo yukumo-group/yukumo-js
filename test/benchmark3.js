@@ -1,4 +1,4 @@
-import { strchr_hook, stricmp_hook, strncmp_hook } from "../dist/clib_hook.js";
+import { strchr_hook, stricmp_hook, strncmp_hook } from "../src/emu/hooks/clib.js";
 
 function createMockEmu() {
   const mem = new Uint8Array(1024 * 1024);

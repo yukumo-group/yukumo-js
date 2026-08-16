@@ -1,15 +1,15 @@
 /**
- * Test script: Verify AquesTalk v86 emulation works correctly.
+ * Test script: Verify AquesTalk1 v86 emulation works correctly.
  * Run with: npx ts-node test/test_v86.ts
  */
 import * as fs from "fs";
 import * as path from "path";
 import JSZip from "jszip";
-import { V86Emu } from "../src/v86_emu";
-import { AquesTalk } from "../src/index";
+import { V86Emu } from "../src/emu/v86";
+import { AquesTalk1 } from "../src/index";
 
 async function main() {
-  console.log("=== AquesTalk v86 Test ===");
+  console.log("=== AquesTalk1 v86 Test ===");
   console.log("Loading DLL from zip...");
 
   // Load zip file
@@ -30,9 +30,9 @@ async function main() {
   const initTime = performance.now() - startInit;
   console.log(`v86 initialized in ${initTime.toFixed(1)}ms`);
 
-  // Create AquesTalk instance
-  console.log("Creating AquesTalk instance...");
-  const aq = new AquesTalk(dllFile, emu);
+  // Create AquesTalk1 instance
+  console.log("Creating AquesTalk1 instance...");
+  const aq = new AquesTalk1(dllFile, emu);
 
   // Run TTS synthesis
   const testText = "こんにちわ、せかい";

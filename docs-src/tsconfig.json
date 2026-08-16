@@ -19,9 +19,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
     "paths": {
-      "aquestalk.js": ["../src/index.ts"]
+      "yukumo.js": ["../src/index.ts"]
     }
   },
   "include": ["src", "../src"],

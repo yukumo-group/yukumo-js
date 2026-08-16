@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parsePE } from "../src/pe";
+import { parsePE } from "../src/emu/pe";
 
 describe("parsePE", () => {
   it("should throw when MZ header is missing", () => {
@@ -101,7 +101,7 @@ describe("parsePE", () => {
 
     expect(result).toEqual({
       baseAddress: imageBase,
-      aquesTalkSyntheRVA: 0,
+      exports: {},
       iatHooks: {},
       adjustFdivRVA: 0,
       adjustFdivTarget: 0,

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import { AquesTalk, load, Voice } from "aquestalk.js";
+import { AquesTalk1, load, Voice } from "yukumo.js";
 
 async function play_wav(wav: Uint8Array) {
-  const blob = new Blob([wav as any], { type: "audio/wav" });
+  const blob = new Blob([new Uint8Array(wav)], { type: "audio/wav" });
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
   await audio.play();
@@ -25,11 +25,11 @@ function App() {
   const [talkText, setTalkText] = useState("こんにちわ、せかい");
   const [selectedVoice, setSelectedVoice] = useState(VOICES[0]);
   const [speed, setSpeed] = useState(100);
-  const [talkEngine, setTalkEngine] = useState<AquesTalk | null>(null);
+  const [talkEngine, setTalkEngine] = useState<AquesTalk1 | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    let engine: AquesTalk | null = null;
+    let engine: AquesTalk1 | null = null;
     (async () => {
       setIsLoading(true);
       setTalkEngine(null);
@@ -55,7 +55,7 @@ function App() {
 
   return (
     <>
-      <h1>AquesTalk.js Demo</h1>
+      <h1>yukumo.js Demo</h1>
       <div className="card">
         <div style={{ marginBottom: "1rem" }}>
           <label htmlFor="voice-select" style={{ marginRight: "0.5rem" }}>

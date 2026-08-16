@@ -8,10 +8,12 @@ const JSZip = require('jszip');
 
 async function main() {
   // Load modules dynamically since they're ESM
-  const { V86Emu, REG_EAX, REG_ESP } = require('../src/v86_emu');
-  const { Heap, hook_lib_call, reg_read_uint32, reg_write_uint32 } = require('../src/emu_util');
-  const { push, call, ret, get_arg, jmp } = require('../src/x86_util');
-  const { to_bytes_uint32, from_bytes_uint32, convert_sjis, uint8array_concat } = require('../src/util');
+  const { V86Emu, REG_EAX, REG_ESP } = require('../src/emu/v86');
+  const { Heap } = require('../src/emu/heap');
+  const { hook_lib_call, reg_read_uint32, reg_write_uint32 } = require('../src/emu/helpers');
+  const { push, call, ret, get_arg, jmp } = require('../src/emu/x86');
+  const { to_bytes_uint32, from_bytes_uint32, uint8array_concat } = require('../src/emu/bytes');
+  const { convert_sjis } = require('../src/synth/aquestalk1/sjis');
 
   console.log("=== Debug Hook Test ===");
 

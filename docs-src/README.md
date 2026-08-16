@@ -32,9 +32,6 @@ export default {
 ## dev
 
 ```bash
-cd ../
-npm link
-cd -
-npm link aquestalk.js
-npm run dev
+pnpm install
+pnpm --dir docs-src dev
 ```

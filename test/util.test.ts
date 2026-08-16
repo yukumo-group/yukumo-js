@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { to_bytes_uint32, from_bytes_uint32, convert_sjis, uint8array_concat } from "../src/util";
+import { to_bytes_uint32, from_bytes_uint32, uint8array_concat } from "../src/emu/bytes";
+import { convert_sjis } from "../src/synth/aquestalk1/sjis";
 
 describe("util", () => {
   describe("to_bytes_uint32", () => {

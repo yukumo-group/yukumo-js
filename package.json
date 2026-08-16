@@ -1,15 +1,16 @@
 {
-  "name": "aquestalk.js",
+  "name": "yukumo.js",
   "version": "1.0.6",
   "type": "module",
-  "description": "AquesTalk on WebAssembly(v86)",
+  "description": "AquesTalk all versions on WebAssembly(v86)",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "src",
-    "voices",
+    "bin/thirds.7z",
+    "bin/v86.wasm",
     "readme.md",
     "LICENSE"
   ],
@@ -26,6 +27,7 @@
   },
   "dependencies": {
     "encoding-japanese": "^2.0.0",
+    "js7z-tools": "^2.5.0",
     "jszip": "^3.10.1",
     "v86": "^0.5.319"
   },
@@ -36,5 +38,6 @@
     "typescript": "^5.3.3",
     "vitest": "^4.1.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "pnpm@11.21.0"
 }

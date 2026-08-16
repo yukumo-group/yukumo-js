@@ -1,5 +1,8 @@
 dist
 node_modules/
+pnpm-debug.log*
 
 _/
 docs
+
+bin/thirds/

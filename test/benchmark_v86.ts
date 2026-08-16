@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import JSZip from "jszip";
-import { V86Emu } from "../src/v86_emu";
-import { AquesTalk } from "../src/index";
+import { V86Emu } from "../src/emu/v86";
+import { AquesTalk1 } from "../src/index";
 
 async function main() {
   const zipPath = path.join(__dirname, "..", "docs", "f1.zip");
@@ -15,7 +15,7 @@ async function main() {
   const wasmPath = path.join(__dirname, "..", "node_modules", "v86", "build", "v86.wasm");
   await emu.init({ wasmPath, memorySize: 1024 * 1024 * 1024 });
 
-  const aq = new AquesTalk(dllFile, emu);
+  const aq = new AquesTalk1(dllFile, emu);
 
   const testText = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほ、あいうえおかきくけこさしすせそ"; // Long Hiragana
   

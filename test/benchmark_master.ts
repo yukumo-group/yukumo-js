@@ -44,10 +44,10 @@ async function main() {
   (global as any).window = context;
   (global as any).uc = uc;
 
-  // AquesTalk on master uses 'uc' from global/window
-  const { loadAquesTalk } = await import("../src/index");
+  // AquesTalk1 on master uses 'uc' from global/window
+  const { loadAquesTalk1 } = await import("../src/index");
 
-  // Mock fetch for loadAquesTalk
+  // Mock fetch for loadAquesTalk1
   (global as any).fetch = async (url: string) => {
     const filePath = path.join(__dirname, "..", "docs-src", "public", url.replace(/^\.\//, ""));
     const buffer = fs.readFileSync(filePath);
@@ -56,8 +56,8 @@ async function main() {
     } as any;
   };
 
-  console.log("Initializing AquesTalk (Unicorn)...");
-  const aq = await loadAquesTalk("./f1.zip", "f1/AquesTalk.dll");
+  console.log("Initializing AquesTalk1 (Unicorn)...");
+  const aq = await loadAquesTalk1("./f1.zip", "f1/AquesTalk.dll");
 
   const testText = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほ、あいうえおかきくけこさしすせそ"; // Same text as v86
 
