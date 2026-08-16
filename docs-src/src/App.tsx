@@ -17,11 +17,15 @@ import { EngineSelect } from "./components/EngineSelect.tsx";
 import { VoiceSelect } from "./components/VoiceSelect.tsx";
 import { SpeedControl } from "./components/SpeedControl.tsx";
 import { Aq10VoiceParams } from "./components/Aq10VoiceParams.tsx";
-import { KanjiToggle } from "./components/KanjiToggle.tsx";
+import {
+  ConvertModeSelect,
+  type ConvertMode,
+} from "./components/ConvertModeSelect.tsx";
 import { TalkInput } from "./components/TalkInput.tsx";
 import { AudioActions } from "./components/AudioActions.tsx";
 import { LicenseNotice } from "./components/LicenseNotice.tsx";
 import type { AqtkVoice } from "yukumo.js";
+import { chineseToKoe } from "yukumo.js/lang/zh";
 
 function App() {
   const [talkText, setTalkText] = useState("こんにちわ、せかい");
@@ -31,7 +35,7 @@ function App() {
   const [aq10Params, setAq10Params] = useState<AqtkVoice>(aq10PresetParams("f1"));
   const [talkEngine, setTalkEngine] = useState<TalkEngine | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [convertKanji, setConvertKanji] = useState(true);
+  const [convertMode, setConvertMode] = useState<ConvertMode>("ja");
   const [kanji2koe, setKanji2Koe] = useState<Kanji2Koe | null>(null);
   const [isConverterLoading, setIsConverterLoading] = useState(false);
 
@@ -82,7 +86,7 @@ function App() {
   }, [engineId, voiceForLoad]);
 
   useEffect(() => {
-    if (!convertKanji || kanji2koe != null) {
+    if (convertMode !== "ja" || kanji2koe != null) {
       return;
     }
     let cancelled = false;
@@ -98,7 +102,7 @@ function App() {
         console.error(e);
         if (!cancelled) {
           alert(`Failed to load kanji2koe-openjtalk: ${e}`);
-          setConvertKanji(false);
+          setConvertMode("none");
         }
       } finally {
         if (!cancelled) {
@@ -109,31 +113,37 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [convertKanji, kanji2koe]);
+  }, [convertMode, kanji2koe]);
 
-  const converterBusy = convertKanji && (isConverterLoading || kanji2koe == null);
+  const converterBusy =
+    convertMode === "ja" && (isConverterLoading || kanji2koe == null);
   const playDisabled = talkEngine == null || isLoading || converterBusy;
   const convertedKoe = useMemo(() => {
-    if (!convertKanji || kanji2koe == null) {
-      return null;
-    }
     try {
-      return kanji2koe.convert(talkText);
+      if (convertMode === "ja") {
+        return kanji2koe == null ? null : kanji2koe.convert(talkText);
+      }
+      if (convertMode === "zh") {
+        return chineseToKoe(talkText);
+      }
     } catch {
       return null;
     }
-  }, [convertKanji, kanji2koe, talkText]);
+    return null;
+  }, [convertMode, kanji2koe, talkText]);
 
   const makeWav = (): Uint8Array | null => {
     if (talkEngine == null) {
       return null;
     }
     let koe = talkText;
-    if (convertKanji) {
+    if (convertMode === "ja") {
       if (kanji2koe == null) {
         return null;
       }
       koe = kanji2koe.convert(talkText);
+    } else if (convertMode === "zh") {
+      koe = chineseToKoe(talkText);
     }
     return synthesize(
       talkEngine,
@@ -185,20 +195,20 @@ function App() {
         ) : (
           <SpeedControl value={speed} onChange={setSpeed} />
         )}
-        <KanjiToggle
-          checked={convertKanji}
-          disabled={isConverterLoading}
-          loading={isConverterLoading}
-          onChange={setConvertKanji}
+        <ConvertModeSelect
+          value={convertMode}
+          disabled={false}
+          loading={convertMode === "ja" && isConverterLoading}
+          onChange={setConvertMode}
         />
         <TalkInput
           value={talkText}
           convertedKoe={convertedKoe}
-          convertKanji={convertKanji}
+          convertMode={convertMode}
           onChange={setTalkText}
         />
         <AudioActions
-          loading={isLoading || isConverterLoading}
+          loading={isLoading || converterBusy}
           playDisabled={playDisabled}
           stopDisabled={!isPlaying}
           downloadDisabled={playDisabled}

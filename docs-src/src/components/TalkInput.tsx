@@ -1,14 +1,21 @@
 import { Field } from "./Field.tsx";
+import type { ConvertMode } from "./ConvertModeSelect.tsx";
+
+const PLACEHOLDERS: Record<ConvertMode, string> = {
+  none: "喋らせたい文字を入力...",
+  ja: "漢字かな交じり文を入力...",
+  zh: "输入中文...",
+};
 
 export function TalkInput({
   value,
   convertedKoe,
-  convertKanji,
+  convertMode,
   onChange,
 }: {
   value: string;
   convertedKoe: string | null;
-  convertKanji: boolean;
+  convertMode: ConvertMode;
   onChange: (text: string) => void;
 }) {
   return (
@@ -22,11 +29,7 @@ export function TalkInput({
         }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={
-          convertKanji
-            ? "漢字かな交じり文を入力..."
-            : "喋らせたい文字を入力..."
-        }
+        placeholder={PLACEHOLDERS[convertMode]}
       />
       {convertedKoe != null && (
         <p

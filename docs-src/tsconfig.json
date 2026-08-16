@@ -20,7 +20,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "yukumo.js": ["../src/index.ts"]
+      "yukumo.js": ["../src/index.ts"],
+      "yukumo.js/lang": ["../src/lang/index.ts"],
+      "yukumo.js/lang/zh": ["../src/lang/zh/index.ts"]
     }
   },
   "include": ["src", "../src"],

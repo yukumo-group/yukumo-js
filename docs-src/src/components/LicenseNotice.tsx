@@ -14,6 +14,25 @@ export function LicenseNotice() {
         </a>{" "}
         を使用しています（AqKanji2Koe とは無関係の再実装です）。
       </p>
+      <p>
+        中文 → koe は Love-Kogasa の zh-yukkuri.js を移植したものです（
+        <a
+          href="https://github.com/Love-Kogasa/pinyinToKana.js"
+          target="_blank"
+          rel="noreferrer"
+        >
+          pinyin-to-kana
+        </a>
+        {" / "}
+        <a
+          href="https://github.com/creeperyang/pinyin"
+          target="_blank"
+          rel="noreferrer"
+        >
+          tiny-pinyin
+        </a>
+        ）。
+      </p>
     </div>
   );
 }

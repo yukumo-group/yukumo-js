@@ -6,10 +6,24 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: {
-      "yukumo.js": path.resolve(__dirname, "../src/index.ts"),
-      v86: path.resolve(__dirname, "node_modules/v86"),
-    },
+    alias: [
+      {
+        find: "yukumo.js/lang/zh",
+        replacement: path.resolve(__dirname, "../src/lang/zh/index.ts"),
+      },
+      {
+        find: "yukumo.js/lang",
+        replacement: path.resolve(__dirname, "../src/lang/index.ts"),
+      },
+      {
+        find: "yukumo.js",
+        replacement: path.resolve(__dirname, "../src/index.ts"),
+      },
+      {
+        find: "v86",
+        replacement: path.resolve(__dirname, "node_modules/v86"),
+      },
+    ],
   },
   optimizeDeps: {
     exclude: ["js7z-tools", "kanji2koe-openjtalk"],
