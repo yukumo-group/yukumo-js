@@ -11,12 +11,24 @@
     "src",
     "bin/thirds.7z",
     "bin/v86.wasm",
-    "readme.md",
+    "README.md",
+    "README.zh.md",
+    "README.ja.md",
     "LICENSE"
   ],
   "exports": {
-    "import": "./dist/index.js",
-    "types": "./dist/index.d.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./lang": {
+      "types": "./dist/lang/index.d.ts",
+      "import": "./dist/lang/index.js"
+    },
+    "./lang/zh": {
+      "types": "./dist/lang/zh/index.d.ts",
+      "import": "./dist/lang/zh/index.js"
+    }
   },
   "scripts": {
     "build": "node scripts/embed_native.js && tsc",
@@ -29,6 +41,7 @@
     "encoding-japanese": "^2.0.0",
     "js7z-tools": "^2.5.0",
     "jszip": "^3.10.1",
+    "tiny-pinyin": "^1.3.2",
     "v86": "^0.5.319"
   },
   "devDependencies": {

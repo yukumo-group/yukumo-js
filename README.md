@@ -1,81 +1,42 @@
-# AquesTalk.js
+# yukumo.js
 
-![thumbnail](./image.png)
+**English** | [中文](README.zh.md) | [日本語](README.ja.md)
 
-AquesTalkをWebAssembly(v86)環境で動かし、ブラウザやNode.jsで簡単に利用できるようにしたライブラリです。
+AquesTalk 1 / 2 / 10 on WebAssembly ([v86](https://github.com/copy/v86)), for browsers and Node.js.
 
-DEMO : [https://aquestalk-js.y52.dev](https://aquestalk-js.y52.dev)
+DEMO: [https://aquestalk-js.y52.dev](https://aquestalk-js.y52.dev)
 
-## 特徴
-- ブラウザ上でAquesTalk(Win32版)をエミュレートして音声合成
-- 複数の音声(f1, f2, m1, m2, dvd, imd1, jgr, r1)に対応
-- TypeScript対応
-- [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM) / [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk) と組み合わせることで、漢字かな交じり文から読み上げ可能
+## Features
 
-## インストール
+- Emulates Win32 AquesTalk in the browser / Node.js and synthesizes WAV
+- **AquesTalk1** voices: `f1`, `f2`, `m1`, `m2`, `dvd`, `imd1`, `jgr`, `r1`
+- **AquesTalk2** voices (phont): `f1c`, `f3a`, `f4`, `mf1`, `mf2`, `m4b`, `m5`, `rm`, `rm3`, `huskey`, `rb2`, `rb3`, `robo`, `yukkuri`
+- **AquesTalk10** presets: `f1`, `f2`, `f3`, `m1`, `m2`, `r1`, `r2` (or a custom `AqtkVoice`)
+- TypeScript
+- Japanese mixed-script text via [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM) / [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk)
+- Mandarin Chinese → AquesTalk koe (kana) via `yukumo.js/lang/zh`
 
-```bash
-npm install aquestalk.js
-```
-
-## 使い方
-
-### 基本的な例
-
-```typescript
-import { load } from 'aquestalk.js';
-
-async function main() {
-  // 音声名（f1, f2, m1等）を指定して初期化
-  // 同梱されているアセットが自動的にロードされます
-  const aq = await load('f1');
-
-  // 音声の生成 (Wave形式のUint8Arrayが返ります)
-  const wav = aq.run('ゆっくりしていってね', 100);
-
-  // 再生例 (ブラウザ環境)
-  const blob = new Blob([wav], { type: 'audio/wav' });
-  const url = URL.createObjectURL(blob);
-  const audio = new Audio(url);
-  audio.play();
-
-  // 使い終わったら破棄（エミュレータのリソースを解放）
-  await aq.destroy();
-}
-
-main();
-```
-
-### 漢字かな交じり文を読み上げる
-
-`aquestalk.js` の `run()` は AquesTalk 音声記号列を入力に取ります。
-通常の日本語文をそのまま読み上げたい場合は、`kanji2koe-openjtalk` で漢字かな交じり文を音声記号列に変換してから `aquestalk.js` に渡します。
+## Install
 
 ```bash
-npm install aquestalk.js kanji2koe-openjtalk
+npm install yukumo.js
 ```
 
+## Basic usage (AquesTalk1)
+
+`run()` takes an AquesTalk phonetic string (koe), not ordinary prose.
+
 ```typescript
-import { load as loadAquesTalk1 } from 'aquestalk.js';
-import { load as loadKanji2Koe } from 'kanji2koe-openjtalk';
+import { load } from "yukumo.js";
 
 async function main() {
-  const kanji2koe = await loadKanji2Koe();
-  const aq = await loadAquesTalk1('f1', {
-    memorySize: 1024 * 1024 * 1024,
-  });
+  const aq = await load("f1");
+  const wav = aq.run("こんにちは", 100);
 
-  const koe = kanji2koe.convert('今日は良い天気ですね。');
-  const wav = aq.run(koe, 100);
-
-  // 再生例 (ブラウザ環境)
-  const bytes = new ArrayBuffer(wav.byteLength);
-  new Uint8Array(bytes).set(wav);
-  const blob = new Blob([bytes], { type: 'audio/wav' });
+  const blob = new Blob([wav], { type: "audio/wav" });
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
   await audio.play();
-  URL.revokeObjectURL(url);
 
   await aq.destroy();
 }
@@ -83,84 +44,117 @@ async function main() {
 main();
 ```
 
-関連:
+## AquesTalk2 / AquesTalk10
+
+```typescript
+import { loadAquesTalk2, loadAquesTalk10 } from "yukumo.js";
+
+const aq2 = await loadAquesTalk2("yukkuri");
+const wav2 = aq2.run("こんにちは", 100);
+
+const aq10 = await loadAquesTalk10("f1");
+const wav10 = aq10.run("こんにちは", 100, "f1");
+```
+
+AquesTalk1 and AquesTalk10 also expose `SetDevKey` / `SetUsrKey` when the DLL exports them.
+
+## Japanese kanji / kana text
+
+`run()` expects koe. Convert mixed Japanese with `kanji2koe-openjtalk` first.
+
+```bash
+npm install yukumo.js kanji2koe-openjtalk
+```
+
+```typescript
+import { load as loadAquesTalk1 } from "yukumo.js";
+import { load as loadKanji2Koe } from "kanji2koe-openjtalk";
+
+const kanji2koe = await loadKanji2Koe();
+const aq = await loadAquesTalk1("f1");
+
+const koe = kanji2koe.convert("今日は良い天気ですね。");
+const wav = aq.run(koe, 100);
+
+await aq.destroy();
+```
+
 - GitHub: [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM)
 - npm: [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk)
 
+## Mandarin Chinese → koe
+
+Import `yukumo.js/lang/zh`. This approximates Mandarin pronunciation in katakana (not Japanese on'yomi).
+
+```typescript
+import { load } from "yukumo.js";
+import { chineseToKoe } from "yukumo.js/lang/zh";
+
+const aq = await load("f1");
+const koe = chineseToKoe("你好，世界");
+const wav = aq.run(koe, 100);
+
+await aq.destroy();
+```
+
+`chineseToKoe("你好")` → `ニーハオ`. Digits are read as Chinese numerals first (`13` → `十三` → `シーサン`).
+
 ## API
 
-### `load(voice: Voice, options?: Options): Promise<AquesTalk1>`
+### `load(voice, options?): Promise<AquesTalk1>`
 
-指定した音声（同梱アセット）を使用して初期化します。
+- `voice`: `"f1" | "f2" | "m1" | "m2" | "dvd" | "imd1" | "jgr" | "r1"`
+- `options.baseUrl`: override asset base URL
+- `options.wasmPath`: path to `v86.wasm`
+- `options.memorySize`: emulator memory in **bytes** (default `1024 * 1024 * 1024`)
 
-- `voice`: 音声名。以下のいずれかを指定します。
-  `"f1" | "f2" | "m1" | "m2" | "dvd" | "imd1" | "jgr" | "r1"`
-- `options`:
-    - `baseUrl`: アセット(zip, wasm)のベースURLを個別に指定する場合に使用
-    - `wasmPath`: `v86.wasm` へのパスを個別に指定する場合に使用（デフォルトは自動解決）
-    - `memorySize`: エミュレータに割り当てるメモリサイズ（MB）
+### `loadAquesTalk1(archivePath, dllpath, options?)`
 
-### `loadAquesTalk1(zippath: string, dllpath: string, options?: Options): Promise<AquesTalk1>`
+Load AquesTalk1 from a custom 7z archive and DLL path inside it.
 
-独自のzipファイルやDLLを使用して初期化します。
+### `loadAquesTalk2(voice, options?)` / `loadAquesTalk2FromArchive(...)`
 
-- `zippath`: AquesTalkのzipファイルへのパス（URL）
-- `dllpath`: zip内のDLLファイルへの相対パス
-- `options`: 上記 `load` と同様
+AquesTalk2: one DLL plus a `.phont` per voice.
 
-### `AquesTalk1` クラス
+### `loadAquesTalk10(voice?, options?)` / `loadAquesTalk10FromArchive(...)`
 
-#### `run(koe: string, speed?: number): Uint8Array`
+AquesTalk10: one DLL; voice is applied at `run()` time.
 
-音声合成を実行し、WAV形式のデータを返します。
+### `run(koe, speed?)` (AQ1 / AQ2)
 
-- `koe`: 音声合成する文字列（AquesTalk記号表記）
-- `speed`: 再生速度（50〜300、デフォルト 100）
+- `koe`: AquesTalk phonetic string
+- `speed`: 50–300, default `100`
+- Returns WAV `Uint8Array`
 
-#### `destroy(): Promise<void>`
+### `AquesTalk10.run(koe, speed?, voice?)`
 
-エミュレータを停止し、使用していたすべてのリソース（メモリ等）を解放します。
+`voice` is a preset name or `{ bas, spd, vol, pit, acc, lmd, fsc }`.
 
-## ライセンス
+### `destroy(): Promise<void>`
 
-### aquestalk.js (このライブラリ)
+Stop the emulator and free resources.
+
+## License
+
+### yukumo.js
+
 [MIT License](LICENSE)
 
-### AquesTalk (エンジンの著作権)
-AquesTalkの著作権は株式会社アクエストに帰属します。
-利用にあたっては[アクエスト社のライセンス規定](https://www.a-quest.com/licence.html)に従ってください。
-詳細なライセンス情報は、同梱されている音声zip内の `AqLicence.txt` を参照してください。
+### AquesTalk
 
-ライセンスの規定により、dllファイル単体での再配布は禁止されており、それを回避するためにzipファイルで配布しています。
+Copyright of AquesTalk belongs to Aquest Inc. Follow [Aquest's license](https://www.a-quest.com/licence.html). See `AqLicence.txt` inside the bundled voice archive.
 
+DLLs must not be redistributed alone; this package ships them inside a 7z archive for that reason.
 
-> ■複製・再配布<br>
-> ユーザーは、本ソフトウェアのパッケージを個人利用、商用利用を問わず複製、再配布<br>
-> することができます。<br>
-> 「ＤＬＬの再配布」の規定を除き、当社から配布されたものと異なるパッケージや部分<br>
-> 的な配布はできません。<br>
-> <br>
-> ■ＤＬＬの再配布<br>
-> ユーザーは、次のすべての条件を満たす場合に限り、ＤＬＬを他のプログラム(以下、二<br>
-> 次的ソフトウェア）に組み込んで配布することができます。なお、ＤＬＬファイル単体<br>
-> での再配布は許諾されておりません。<br>
-> <br>
-> -本使用許諾契約書ファイルの複製がＤＬＬと同じディレクトリに常に保存されているこ<br>
-> と<br>
-> <br>
-> -ＤＬＬの著作権が当社に帰属することを、その二次的ソフトウェアのユーザーがわかる<br>
-> ように明記すること<br>
-> <br>
-> -本ソフトウェアを使用していることを、その二次的ソフトウェアの利用者がわかるよう<br>
-> に明記すること<br>
+> Reproduction / redistribution: the full package may be copied. Partial or altered packages are not allowed, except under the DLL redistribution clause.
+>
+> DLL redistribution: allowed only when bundled into another program, with this license file next to the DLL, and with clear notice that Aquest owns the copyright and that AquesTalk is used. Standalone DLL redistribution is not permitted.
 
+## References
 
----
+- [AquesTalk developer guide (Linux)](https://www.a-quest.com/archive/manual/prog_guide_linux.pdf)
 
-## 参考
-- [AquesTalk 開発者ガイド (Linux版)](https://www.a-quest.com/archive/manual/prog_guide_linux.pdf)
+## Credits
 
-
-## クレジット
-
-ゆっくり立ち絵:	https://kumasannosozaiya.studio.site/
+- Yukkuri standing art: https://kumasannosozaiya.studio.site/
+- Mandarin → koe is adapted from Love-Kogasa's **zh-yukkuri.js** (Chinese wrapper around aquestalk.js), using [pinyin-to-kana](https://github.com/Love-Kogasa/pinyinToKana.js) (JS port of [uiur/pinyin_to_kana](https://github.com/uiur/pinyin_to_kana); mapping based on [中国語音節表記ガイドライン 平凡社版](http://cn.heibonsha.co.jp/)) and [tiny-pinyin](https://github.com/creeperyang/pinyin).
