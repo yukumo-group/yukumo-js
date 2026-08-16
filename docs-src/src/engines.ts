@@ -8,12 +8,17 @@ import {
   Voice,
   AquesTalk2Voice,
   AquesTalk10Voice,
+  AqtkVoice,
+  AQUES_TALK10_VOICE_PRESETS,
 } from "yukumo.js";
 import { generateDevKey } from "./kg.ts";
 
 export type EngineId = "aq1" | "aq2" | "aq10";
 export type TalkEngine = AquesTalk1 | AquesTalk2 | AquesTalk10;
-export type AnyVoice = Voice | AquesTalk2Voice | AquesTalk10Voice;
+export type Aq10VoiceChoice = AquesTalk10Voice | "custom";
+export type AnyVoice = Voice | AquesTalk2Voice | Aq10VoiceChoice;
+
+export const AQ10_CUSTOM_VOICE = "custom" as const;
 
 export const MEMORY_SIZE = 1024 * 1024 * 1024;
 
@@ -51,7 +56,7 @@ export const AQ2_VOICES: { id: AquesTalk2Voice; label: string }[] = [
   { id: "yukkuri", label: "ゆっくり (yukkuri)" },
 ];
 
-export const AQ10_VOICES: { id: AquesTalk10Voice; label: string }[] = [
+export const AQ10_VOICES: { id: Aq10VoiceChoice; label: string }[] = [
   { id: "f1", label: "女声 F1 (f1)" },
   { id: "f2", label: "女声 F2 (f2)" },
   { id: "f3", label: "女声 F3 (f3)" },
@@ -59,7 +64,16 @@ export const AQ10_VOICES: { id: AquesTalk10Voice; label: string }[] = [
   { id: "m2", label: "男声 M2 (m2)" },
   { id: "r1", label: "ロボット R1 (r1)" },
   { id: "r2", label: "ロボット R2 (r2)" },
+  { id: AQ10_CUSTOM_VOICE, label: "カスタム" },
 ];
+
+export function aq10PresetParams(voice: AquesTalk10Voice): AqtkVoice {
+  return { ...AQUES_TALK10_VOICE_PRESETS[voice] };
+}
+
+export function isAq10Preset(voice: AnyVoice): voice is AquesTalk10Voice {
+  return voice !== AQ10_CUSTOM_VOICE && voice in AQUES_TALK10_VOICE_PRESETS;
+}
 
 export function voicesFor(engineId: EngineId) {
   if (engineId === "aq1") return AQ1_VOICES;
@@ -87,7 +101,8 @@ export async function loadTalkEngine(
   if (engineId === "aq2") {
     return loadAquesTalk2(voice as AquesTalk2Voice, options);
   }
-  const aq10 = await loadAquesTalk10(voice as AquesTalk10Voice, options);
+  const aq10Voice = isAq10Preset(voice) ? voice : "f1";
+  const aq10 = await loadAquesTalk10(aq10Voice, options);
   const keyResult = aq10.SetDevKey(generateDevKey({ module: "tk10" }));
   if (keyResult !== 0) {
     throw new Error(`SetDevKey failed with code ${keyResult}`);
@@ -100,10 +115,12 @@ export function synthesize(
   engineId: EngineId,
   voice: AnyVoice,
   koe: string,
-  speed: number
+  speed: number,
+  aq10Params?: AqtkVoice
 ): Uint8Array {
   if (engineId === "aq10") {
-    return (engine as AquesTalk10).run(koe, speed, voice as AquesTalk10Voice);
+    const param = aq10Params ?? (isAq10Preset(voice) ? aq10PresetParams(voice) : aq10PresetParams("f1"));
+    return (engine as AquesTalk10).run(koe, param.spd, param);
   }
   return engine.run(koe, speed);
 }

@@ -4,7 +4,9 @@ import type { Kanji2Koe } from "kanji2koe-openjtalk";
 import kanji2koeWasmUrl from "../node_modules/kanji2koe-openjtalk/pkg/aqkanji2koe_wasm_bg.wasm?url";
 import { playWav } from "./audio.ts";
 import {
+  aq10PresetParams,
   defaultVoice,
+  isAq10Preset,
   loadTalkEngine,
   synthesize,
   type AnyVoice,
@@ -14,19 +16,22 @@ import {
 import { EngineSelect } from "./components/EngineSelect.tsx";
 import { VoiceSelect } from "./components/VoiceSelect.tsx";
 import { SpeedControl } from "./components/SpeedControl.tsx";
+import { Aq10VoiceParams } from "./components/Aq10VoiceParams.tsx";
 import { KanjiToggle } from "./components/KanjiToggle.tsx";
 import { TalkInput } from "./components/TalkInput.tsx";
 import { PlayButton } from "./components/PlayButton.tsx";
 import { LicenseNotice } from "./components/LicenseNotice.tsx";
+import type { AqtkVoice } from "yukumo.js";
 
 function App() {
   const [talkText, setTalkText] = useState("こんにちわ、せかい");
   const [engineId, setEngineId] = useState<EngineId>("aq1");
   const [selectedVoice, setSelectedVoice] = useState<AnyVoice>(defaultVoice("aq1"));
   const [speed, setSpeed] = useState(100);
+  const [aq10Params, setAq10Params] = useState<AqtkVoice>(aq10PresetParams("f1"));
   const [talkEngine, setTalkEngine] = useState<TalkEngine | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [convertKanji, setConvertKanji] = useState(false);
+  const [convertKanji, setConvertKanji] = useState(true);
   const [kanji2koe, setKanji2Koe] = useState<Kanji2Koe | null>(null);
   const [isConverterLoading, setIsConverterLoading] = useState(false);
 
@@ -117,16 +122,37 @@ function App() {
           disabled={isLoading}
           onChange={(next) => {
             setEngineId(next);
-            setSelectedVoice(defaultVoice(next));
+            const voice = defaultVoice(next);
+            setSelectedVoice(voice);
+            if (next === "aq10" && isAq10Preset(voice)) {
+              setAq10Params(aq10PresetParams(voice));
+            } else if (engineId === "aq10") {
+              setSpeed(aq10Params.spd);
+            }
           }}
         />
         <VoiceSelect
           engineId={engineId}
           value={selectedVoice}
           disabled={isLoading && engineId !== "aq10"}
-          onChange={setSelectedVoice}
+          onChange={(voice) => {
+            setSelectedVoice(voice);
+            if (engineId === "aq10" && isAq10Preset(voice)) {
+              setAq10Params(aq10PresetParams(voice));
+            }
+          }}
         />
-        <SpeedControl value={speed} onChange={setSpeed} />
+        {engineId === "aq10" ? (
+          <Aq10VoiceParams
+            value={aq10Params}
+            onChange={(next) => {
+              setAq10Params(next);
+              setSelectedVoice("custom");
+            }}
+          />
+        ) : (
+          <SpeedControl value={speed} onChange={setSpeed} />
+        )}
         <KanjiToggle
           checked={convertKanji}
           disabled={isConverterLoading}
@@ -164,7 +190,7 @@ function App() {
             console.time("talkEngine.run");
             try {
               await playWav(
-                synthesize(talkEngine, engineId, selectedVoice, koe, speed)
+                synthesize(talkEngine, engineId, selectedVoice, koe, speed, aq10Params)
               );
             } catch (e) {
               console.error(e);
