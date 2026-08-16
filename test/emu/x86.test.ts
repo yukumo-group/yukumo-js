@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { push, pop, jmp, call, ret, get_arg } from "../src/emu/x86";
-import { V86Emu, REG_ESP } from "../src/emu/v86";
-import { to_bytes_uint32 } from "../src/emu/bytes";
+import { push, pop, jmp, call, ret, get_arg } from "../../src/emu/x86";
+import { V86Emu, REG_ESP } from "../../src/emu/v86";
+import { to_bytes_uint32 } from "../../src/emu/bytes";
 
-describe("x86_util", () => {
+describe("x86", () => {
   let mockEmu: any;
 
   beforeEach(() => {

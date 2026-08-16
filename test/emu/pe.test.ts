@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parsePE } from "../src/emu/pe";
+import { parsePE } from "../../src/emu/pe";
 
 describe("parsePE", () => {
   it("should throw when MZ header is missing", () => {

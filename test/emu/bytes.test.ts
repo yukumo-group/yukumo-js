@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { to_bytes_uint32, from_bytes_uint32, uint8array_concat } from "../src/emu/bytes";
-import { convert_sjis } from "../src/synth/aquestalk1/sjis";
+import { to_bytes_uint32, from_bytes_uint32, uint8array_concat } from "../../src/emu/bytes";
 
-describe("util", () => {
+describe("bytes", () => {
   describe("to_bytes_uint32", () => {
     it("should convert 0 to bytes", () => {
       expect(to_bytes_uint32(0)).toEqual(new Uint8Array([0, 0, 0, 0]));
@@ -28,19 +27,6 @@ describe("util", () => {
 
     it("should convert bytes to 0x12345678", () => {
       expect(from_bytes_uint32(new Uint8Array([0x78, 0x56, 0x34, 0x12]))).toBe(0x12345678);
-    });
-  });
-
-  describe("convert_sjis", () => {
-    it("should convert ASCII string to Shift-JIS", () => {
-      const result = convert_sjis("abc");
-      expect(result).toEqual(new Uint8Array([0x61, 0x62, 0x63]));
-    });
-
-    it("should convert Japanese string to Shift-JIS", () => {
-      const result = convert_sjis("あ");
-      // "あ" in Shift-JIS is 0x82 0xA0
-      expect(result).toEqual(new Uint8Array([0x82, 0xa0]));
     });
   });
 

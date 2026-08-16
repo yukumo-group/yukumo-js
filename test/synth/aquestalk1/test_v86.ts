@@ -1,19 +1,19 @@
 /**
  * Test script: Verify AquesTalk1 v86 emulation works correctly.
- * Run with: npx ts-node test/test_v86.ts
+ * Run with: npx ts-node test/synth/aquestalk1/test_v86.ts
  */
 import * as fs from "fs";
 import * as path from "path";
 import JSZip from "jszip";
-import { V86Emu } from "../src/emu/v86";
-import { AquesTalk1 } from "../src/index";
+import { V86Emu } from "../../../src/emu/v86";
+import { AquesTalk1 } from "../../../src/index";
 
 async function main() {
   console.log("=== AquesTalk1 v86 Test ===");
   console.log("Loading DLL from zip...");
 
   // Load zip file
-  const zipPath = path.join(__dirname, "..", "docs", "f1.zip");
+  const zipPath = path.join(__dirname, "../../..", "docs", "f1.zip");
   const zipBuf = fs.readFileSync(zipPath);
   const zip = new JSZip();
   const zipRoot = await zip.loadAsync(zipBuf);
@@ -24,7 +24,7 @@ async function main() {
   console.log("Initializing v86 emulator...");
   const startInit = performance.now();
   const emu = new V86Emu();
-  const wasmPath = path.join(__dirname, "..", "node_modules", "v86", "build", "v86.wasm");
+  const wasmPath = path.join(__dirname, "../../..", "node_modules", "v86", "build", "v86.wasm");
   // Need 1GB memory to accommodate BASE_ADDRESS (0x10000000) and HEAP (0x20000000)
   await emu.init({ wasmPath, memorySize: 1024 * 1024 * 1024 });
   const initTime = performance.now() - startInit;
@@ -57,7 +57,7 @@ async function main() {
   }
 
   // Save output for inspection
-  const outPath = path.join(__dirname, "output.wav");
+  const outPath = path.join(__dirname, "../../output.wav");
   fs.writeFileSync(outPath, result);
   console.log(`Output saved to: ${outPath}`);
 

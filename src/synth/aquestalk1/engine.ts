@@ -19,6 +19,10 @@ import {
 import { convert_sjis } from "./sjis.js";
 import { createJsHookMap, NATIVE_IAT_HOOKS } from "./iat.js";
 
+function encodeCString(str: string): Uint8Array {
+  return uint8array_concat(new TextEncoder().encode(str), new Uint8Array([0]));
+}
+
 export class AquesTalk1 {
   readonly #dll_file;
   readonly #dll_image;
@@ -26,9 +30,13 @@ export class AquesTalk1 {
 
   #baseAddress = 0x1000_0000;
   #aquesTalk1_SyntheAddress = 0;
+  #aquesTalk1_SetDevKeyAddress = 0;
+  #aquesTalk1_SetUsrKeyAddress = 0;
   #iatHooks: { [key: string]: { rva: number; target: number } } = {};
   #adjustFdivTargetAddress = 0;
   #jsIatPatches: { rva: number; stub: number }[] = [];
+  #devKey: string | null = null;
+  #usrKey: string | null = null;
 
   readonly HEAP_ADDRESS = 0x2000_0000;
   readonly HEAP_LENGTH = 0x1000_0000;
@@ -46,13 +54,25 @@ export class AquesTalk1 {
     reg_write_uint32(this.#emu, REG_ESP, this.HEAP_ADDRESS + this.HEAP_LENGTH);
   }
 
+  #resolveExport(pe: { exports: Record<string, number> }, name: string): number {
+    const rva = pe.exports[name];
+    return rva ? this.#baseAddress + rva : 0;
+  }
+
   #init() {
     const emu = this.#emu;
 
     const pe = parsePE(this.#dll_file);
     this.#baseAddress = pe.baseAddress;
-    this.#aquesTalk1_SyntheAddress =
-      this.#baseAddress + (pe.exports["AquesTalk_Synthe"] ?? 0);
+    this.#aquesTalk1_SyntheAddress = this.#resolveExport(pe, "AquesTalk_Synthe");
+    this.#aquesTalk1_SetDevKeyAddress = this.#resolveExport(
+      pe,
+      "AquesTalk_SetDevKey"
+    );
+    this.#aquesTalk1_SetUsrKeyAddress = this.#resolveExport(
+      pe,
+      "AquesTalk_SetUsrKey"
+    );
     this.#iatHooks = pe.iatHooks;
     this.#adjustFdivTargetAddress = pe.adjustFdivTarget;
 
@@ -96,7 +116,7 @@ export class AquesTalk1 {
     this.#reset_esp();
   }
 
-  run(koe: string, speed: number = 100) {
+  #setupEmulation() {
     const emu = this.#emu;
 
     emu.reset_cpu();
@@ -119,23 +139,21 @@ export class AquesTalk1 {
         );
       }
     }
+  }
 
-    const size = this.#heap.set_mem_value(emu, new Uint8Array(8).fill(0));
-    const koe_addr = this.#heap.set_mem_value(
-      emu,
-      uint8array_concat(convert_sjis(koe), new Uint8Array([0x0]))
-    );
+  #invoke(fnAddress: number, args: number[], nopLength = 16): number {
+    const emu = this.#emu;
 
-    push(emu, size);
-    push(emu, speed);
-    push(emu, koe_addr);
+    for (let i = args.length - 1; i >= 0; i--) {
+      push(emu, args[i]);
+    }
 
     const return_fn_addr = this.#heap.set_mem_value(
       emu,
-      new Uint8Array(1048576).fill(NOP_CODE[0])
+      new Uint8Array(nopLength).fill(NOP_CODE[0])
     );
     emu.set_eip(return_fn_addr);
-    call(emu, this.#aquesTalk1_SyntheAddress);
+    call(emu, fnAddress);
 
     try {
       emu.emu_start(emu.get_eip(), return_fn_addr);
@@ -151,8 +169,78 @@ export class AquesTalk1 {
       throw e;
     }
 
+    return reg_read_uint32(emu, REG_EAX);
+  }
+
+  #callSetKey(address: number, name: string, key: string): number {
+    if (!address) {
+      throw new Error(`${name} is not exported by this DLL`);
+    }
+    const key_addr = this.#heap.set_mem_value(this.#emu, encodeCString(key));
+    return this.#invoke(address, [key_addr]);
+  }
+
+  #applyLicenseKeys() {
+    if (this.#devKey !== null) {
+      this.#callSetKey(
+        this.#aquesTalk1_SetDevKeyAddress,
+        "AquesTalk_SetDevKey",
+        this.#devKey
+      );
+    }
+    if (this.#usrKey !== null) {
+      this.#callSetKey(
+        this.#aquesTalk1_SetUsrKeyAddress,
+        "AquesTalk_SetUsrKey",
+        this.#usrKey
+      );
+    }
+  }
+
+  SetDevKey(key: string): number {
+    this.#devKey = key;
+    this.#setupEmulation();
+    const result = this.#callSetKey(
+      this.#aquesTalk1_SetDevKeyAddress,
+      "AquesTalk_SetDevKey",
+      key
+    );
+    this.#reset();
+    return result;
+  }
+
+  SetUsrKey(key: string): number {
+    this.#usrKey = key;
+    this.#setupEmulation();
+    const result = this.#callSetKey(
+      this.#aquesTalk1_SetUsrKeyAddress,
+      "AquesTalk_SetUsrKey",
+      key
+    );
+    this.#reset();
+    return result;
+  }
+
+  run(koe: string, speed: number = 100) {
+    const emu = this.#emu;
+
+    this.#setupEmulation();
+    this.#applyLicenseKeys();
+    this.#reset_esp();
+
+    const size = this.#heap.set_mem_value(emu, new Uint8Array(8).fill(0));
+    const koe_addr = this.#heap.set_mem_value(
+      emu,
+      uint8array_concat(convert_sjis(koe), new Uint8Array([0x0]))
+    );
+
+    const return_value = this.#invoke(
+      this.#aquesTalk1_SyntheAddress,
+      [koe_addr, speed, size],
+      1048576
+    );
+
     const size_value = from_bytes_uint32(emu.mem_read(size, 4));
-    const return_value = reg_read_uint32(emu, REG_EAX);
 
     if (return_value === 0) {
       throw new Error(`AquesTalk_Synthe error. ERROR CODE: ${size_value}`);

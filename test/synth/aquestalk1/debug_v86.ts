@@ -8,24 +8,24 @@ const JSZip = require('jszip');
 
 async function main() {
   // Load modules dynamically since they're ESM
-  const { V86Emu, REG_EAX, REG_ESP } = require('../src/emu/v86');
-  const { Heap } = require('../src/emu/heap');
-  const { hook_lib_call, reg_read_uint32, reg_write_uint32 } = require('../src/emu/helpers');
-  const { push, call, ret, get_arg, jmp } = require('../src/emu/x86');
-  const { to_bytes_uint32, from_bytes_uint32, uint8array_concat } = require('../src/emu/bytes');
-  const { convert_sjis } = require('../src/synth/aquestalk1/sjis');
+  const { V86Emu, REG_EAX, REG_ESP } = require('../../../src/emu/v86');
+  const { Heap } = require('../../../src/emu/heap');
+  const { hook_lib_call, reg_read_uint32, reg_write_uint32 } = require('../../../src/emu/helpers');
+  const { push, call, ret, get_arg, jmp } = require('../../../src/emu/x86');
+  const { to_bytes_uint32, from_bytes_uint32, uint8array_concat } = require('../../../src/emu/bytes');
+  const { convert_sjis } = require('../../../src/synth/aquestalk1/sjis');
 
   console.log("=== Debug Hook Test ===");
 
   // Load DLL
-  const zipBuf = fs.readFileSync(path.join(__dirname, '..', 'docs', 'f1.zip'));
+  const zipBuf = fs.readFileSync(path.join(__dirname, '../../..', 'docs', 'f1.zip'));
   const zip = new JSZip();
   const zipRoot = await zip.loadAsync(zipBuf);
   const dllFile = await zipRoot.files['f1/AquesTalk.dll'].async('arraybuffer');
 
   // Initialize v86
   const emu = new V86Emu();
-  const wasmPath = path.join(__dirname, '..', 'node_modules', 'v86', 'build', 'v86.wasm');
+  const wasmPath = path.join(__dirname, '../../..', 'node_modules', 'v86', 'build', 'v86.wasm');
   await emu.init({ wasmPath, memorySize: 1024 * 1024 * 1024 });
 
   const BASE_ADDRESS = 0x10000000;

@@ -1,18 +1,18 @@
 import * as fs from "fs";
 import * as path from "path";
 import JSZip from "jszip";
-import { V86Emu } from "../src/emu/v86";
-import { AquesTalk1 } from "../src/index";
+import { V86Emu } from "../../../src/emu/v86";
+import { AquesTalk1 } from "../../../src/index";
 
 async function main() {
-  const zipPath = path.join(__dirname, "..", "docs", "f1.zip");
+  const zipPath = path.join(__dirname, "../../..", "docs", "f1.zip");
   const zipBuf = fs.readFileSync(zipPath);
   const zip = new JSZip();
   const zipRoot = await zip.loadAsync(zipBuf);
   const dllFile = await zipRoot.files["f1/AquesTalk.dll"].async("arraybuffer");
 
   const emu = new V86Emu();
-  const wasmPath = path.join(__dirname, "..", "node_modules", "v86", "build", "v86.wasm");
+  const wasmPath = path.join(__dirname, "../../..", "node_modules", "v86", "build", "v86.wasm");
   await emu.init({ wasmPath, memorySize: 1024 * 1024 * 1024 });
 
   const aq = new AquesTalk1(dllFile, emu);

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { malloc_hook } from "../src/emu/hooks/clib.js";
+import { malloc_hook } from "../../../src/emu/hooks/clib.js";
 
 describe("clib_hook", () => {
   describe("malloc_hook", () => {

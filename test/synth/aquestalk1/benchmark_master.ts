@@ -29,7 +29,7 @@ async function main() {
   };
 
   console.log("Loading unicorn-x86.min.js via VM...");
-  const unicornCode = fs.readFileSync(path.join(__dirname, "../docs-src/public/unicorn-x86.min.js"), "utf8");
+  const unicornCode = fs.readFileSync(path.join(__dirname, "../../../docs-src/public/unicorn-x86.min.js"), "utf8");
   
   const vm = require("vm");
   const context = vm.createContext(mockWindow);
@@ -45,11 +45,11 @@ async function main() {
   (global as any).uc = uc;
 
   // AquesTalk1 on master uses 'uc' from global/window
-  const { loadAquesTalk1 } = await import("../src/index");
+  const { loadAquesTalk1 } = await import("../../../src/index");
 
   // Mock fetch for loadAquesTalk1
   (global as any).fetch = async (url: string) => {
-    const filePath = path.join(__dirname, "..", "docs-src", "public", url.replace(/^\.\//, ""));
+    const filePath = path.join(__dirname, "../../..", "docs-src", "public", url.replace(/^\.\//, ""));
     const buffer = fs.readFileSync(filePath);
     return {
       arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
