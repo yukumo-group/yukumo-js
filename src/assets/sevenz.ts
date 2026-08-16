@@ -51,7 +51,7 @@ export async function extractFrom7z(
         return;
       }
       try {
-        const data = js7z.FS.readFile(`/out/${innerPath}`);
+        const data = readExtractedFile(js7z, innerPath);
         resolve(new Uint8Array(data).buffer);
       } catch (e) {
         reject(e);
@@ -65,7 +65,34 @@ export async function extractFrom7z(
       `-p${password}`,
       "-o/out",
       "/in/archive.7z",
-      innerPath,
+      toUnixPath(innerPath),
     ]);
   });
+}
+
+function toUnixPath(path: string): string {
+  return path.replace(/\\/g, "/");
+}
+
+/**
+ * js7z MEMFS may store extracted nested paths with `/` or `\`.
+ * Try both, then the basename under `/out`, so phonts like
+ * `2/phont/aq_f1c.phont` remain readable across hosts.
+ */
+function readExtractedFile(js7z: JS7zInstance, innerPath: string): Uint8Array {
+  const unix = toUnixPath(innerPath);
+  const win = unix.replace(/\//g, "\\");
+  const base = unix.split("/").pop() ?? unix;
+  const candidates = [`/out/${unix}`, `/out/${win}`, `/out/${base}`];
+  let lastErr: unknown;
+  for (const candidate of candidates) {
+    try {
+      return js7z.FS.readFile(candidate);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr instanceof Error
+    ? lastErr
+    : new Error(`Failed to read extracted file: ${innerPath}`);
 }

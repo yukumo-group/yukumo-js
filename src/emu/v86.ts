@@ -2,7 +2,7 @@
  * V86Emu - A wrapper around v86's internal CPU that provides
  * unicorn.js-like API for bare x86-32 emulation.
  *
- * Uses v86's JIT (x86 Å® WebAssembly) for much faster emulation
+ * Uses v86's JIT (x86 ¬Å¬® WebAssembly) for much faster emulation
  * compared to unicorn.js's interpreter approach.
  */
 
@@ -126,12 +126,12 @@ export class V86Emu {
     // Base[23:16] = 0x00, Access byte: Present=1, DPL=11 (3), S=1, Type=1010 (exec/read) = 0xFA
     gdtView.setUint8(12, 0x00);            // base mid
     gdtView.setUint8(13, 0xfa);            // access: P=1, DPL=3, S=1, E=1, DC=0, RW=1, A=0
-    // Flags: Granularity=1, Size=1 (32-bit), Limit[19:16] = 0xF Å® 0xCF
+    // Flags: Granularity=1, Size=1 (32-bit), Limit[19:16] = 0xF ¬Å¬® 0xCF
     gdtView.setUint8(14, 0xcf);            // flags + limit high
     gdtView.setUint8(15, 0x00);            // base high
 
     // Entry 2: Data segment (selector 0x10)
-    // Same as code but Type=0010 (read/write) Å® Access byte 0xF2
+    // Same as code but Type=0010 (read/write) ¬Å¬® Access byte 0xF2
     gdtView.setUint16(16, 0xffff, true);   // limit low
     gdtView.setUint16(18, 0x0000, true);   // base low
     gdtView.setUint8(20, 0x00);            // base mid
@@ -219,7 +219,7 @@ export class V86Emu {
    * Uses I/O port OUT instruction to trap into JavaScript.
    *
    * We write a simple OUT instruction at the hook address:
-   *   OUT imm8, AL    ; E6 pp    ; trigger I/O port write Å® JavaScript handler
+   *   OUT imm8, AL    ; E6 pp    ; trigger I/O port write ¬Å¬® JavaScript handler
    *
    * Just 2 bytes. The callback is expected to handle the return (e.g., by calling ret()).
    * Since OUT doesn't modify any registers or the stack, get_arg/push/pop all work correctly.

@@ -1,6 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import "./App.css";
-import { AquesTalk1, load, Voice } from "yukumo.js";
+import {
+  AquesTalk1,
+  AquesTalk2,
+  load,
+  loadAquesTalk2,
+  Voice,
+  AquesTalk2Voice,
+} from "yukumo.js";
 import type { Kanji2Koe } from "kanji2koe-openjtalk";
 import { generateDevKey } from "./kg.ts";
 import kanji2koeWasmUrl from "../node_modules/kanji2koe-openjtalk/pkg/aqkanji2koe_wasm_bg.wasm?url";
@@ -13,7 +20,15 @@ async function play_wav(wav: Uint8Array) {
   URL.revokeObjectURL(url);
 }
 
-const VOICES: { id: Voice; label: string }[] = [
+type EngineId = "aq1" | "aq2";
+type TalkEngine = AquesTalk1 | AquesTalk2;
+
+const ENGINES: { id: EngineId; label: string }[] = [
+  { id: "aq1", label: "AquesTalk1" },
+  { id: "aq2", label: "AquesTalk2" },
+];
+
+const AQ1_VOICES: { id: Voice; label: string }[] = [
   { id: "f1", label: "女声1 (f1)" },
   { id: "f2", label: "女声2 (f2)" },
   { id: "imd1", label: "中性 (imd1)" },
@@ -24,44 +39,85 @@ const VOICES: { id: Voice; label: string }[] = [
   { id: "r1", label: "ロボット (r1)" },
 ];
 
+const AQ2_VOICES: { id: AquesTalk2Voice; label: string }[] = [
+  { id: "f1c", label: "女声 (f1c)" },
+  { id: "f3a", label: "女声 (f3a)" },
+  { id: "f4", label: "女声 (f4)" },
+  { id: "mf1", label: "中性 (mf1)" },
+  { id: "mf2", label: "中性 (mf2)" },
+  { id: "m4b", label: "男声 (m4b)" },
+  { id: "m5", label: "男声 (m5)" },
+  { id: "rm", label: "男声 (rm)" },
+  { id: "rm3", label: "男声 (rm3)" },
+  { id: "huskey", label: "ハスキー (huskey)" },
+  { id: "rb2", label: "ロボット (rb2)" },
+  { id: "rb3", label: "ロボット (rb3)" },
+  { id: "robo", label: "ロボット (robo)" },
+  { id: "yukkuri", label: "ゆっくり (yukkuri)" },
+];
+
+const MEMORY_SIZE = 1024 * 1024 * 1024; // 1GB
+
 function App() {
   const [talkText, setTalkText] = useState("こんにちわ、せかい");
-  const [selectedVoice, setSelectedVoice] = useState(VOICES[0]);
+  const [engineId, setEngineId] = useState<EngineId>("aq1");
+  const [selectedVoice, setSelectedVoice] = useState<Voice | AquesTalk2Voice>(
+    AQ1_VOICES[0].id
+  );
   const [speed, setSpeed] = useState(100);
-  const [talkEngine, setTalkEngine] = useState<AquesTalk1 | null>(null);
+  const [talkEngine, setTalkEngine] = useState<TalkEngine | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [convertKanji, setConvertKanji] = useState(false);
   const [kanji2koe, setKanji2Koe] = useState<Kanji2Koe | null>(null);
   const [isConverterLoading, setIsConverterLoading] = useState(false);
 
+  const voices = engineId === "aq1" ? AQ1_VOICES : AQ2_VOICES;
+
   useEffect(() => {
-    let engine: AquesTalk1 | null = null;
+    let cancelled = false;
+    let engine: TalkEngine | null = null;
     (async () => {
       setIsLoading(true);
       setTalkEngine(null);
       try {
-        engine = await load(selectedVoice.id, {
-          memorySize: 1024 * 1024 * 1024, // 1GB
-        });
-        const keyResult = engine.SetDevKey(generateDevKey());
-        if (keyResult !== 0) {
-          throw new Error(`SetDevKey failed with code ${keyResult}`);
+        if (engineId === "aq1") {
+          const aq1 = await load(selectedVoice as Voice, {
+            memorySize: MEMORY_SIZE,
+          });
+          const keyResult = aq1.SetDevKey(generateDevKey());
+          if (keyResult !== 0) {
+            throw new Error(`SetDevKey failed with code ${keyResult}`);
+          }
+          engine = aq1;
+        } else {
+          engine = await loadAquesTalk2(selectedVoice as AquesTalk2Voice, {
+            memorySize: MEMORY_SIZE,
+          });
+        }
+        if (cancelled) {
+          await engine.destroy();
+          return;
         }
         setTalkEngine(engine);
       } catch (e) {
-        console.error(e);
-        alert(`Failed to load engine: ${e}`);
+        if (!cancelled) {
+          console.error(e);
+          alert(`Failed to load engine: ${e}`);
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     })();
 
     return () => {
+      cancelled = true;
       if (engine) {
         engine.destroy();
       }
     };
-  }, [selectedVoice]);
+  }, [engineId, selectedVoice]);
 
   useEffect(() => {
     if (!convertKanji || kanji2koe != null) {
@@ -111,19 +167,41 @@ function App() {
       <h1>yukumo.js Demo</h1>
       <div className="card">
         <div style={{ marginBottom: "1rem" }}>
+          <label htmlFor="engine-select" style={{ marginRight: "0.5rem" }}>
+            Engine:
+          </label>
+          <select
+            id="engine-select"
+            value={engineId}
+            onChange={(e) => {
+              const next = e.target.value as EngineId;
+              setEngineId(next);
+              setSelectedVoice(
+                next === "aq1" ? AQ1_VOICES[0].id : AQ2_VOICES[0].id
+              );
+            }}
+            disabled={isLoading}
+          >
+            {ENGINES.map((eng) => (
+              <option key={eng.id} value={eng.id}>
+                {eng.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div style={{ marginBottom: "1rem" }}>
           <label htmlFor="voice-select" style={{ marginRight: "0.5rem" }}>
             Voice:
           </label>
           <select
             id="voice-select"
-            value={selectedVoice.id}
+            value={selectedVoice}
             onChange={(e) => {
-              const voice = VOICES.find((v) => v.id === e.target.value);
-              if (voice) setSelectedVoice(voice);
+              setSelectedVoice(e.target.value as Voice | AquesTalk2Voice);
             }}
             disabled={isLoading}
           >
-            {VOICES.map((v) => (
+            {voices.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.label}
               </option>
