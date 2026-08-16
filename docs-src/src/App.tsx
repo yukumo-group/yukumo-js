@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import "./App.css";
 import type { Kanji2Koe } from "kanji2koe-openjtalk";
 import kanji2koeWasmUrl from "../node_modules/kanji2koe-openjtalk/pkg/aqkanji2koe_wasm_bg.wasm?url";
-import { playWav } from "./audio.ts";
+import { createPlayback, downloadWav, wavFilename } from "./audio.ts";
 import {
   aq10PresetParams,
   defaultVoice,
@@ -19,7 +19,7 @@ import { SpeedControl } from "./components/SpeedControl.tsx";
 import { Aq10VoiceParams } from "./components/Aq10VoiceParams.tsx";
 import { KanjiToggle } from "./components/KanjiToggle.tsx";
 import { TalkInput } from "./components/TalkInput.tsx";
-import { PlayButton } from "./components/PlayButton.tsx";
+import { AudioActions } from "./components/AudioActions.tsx";
 import { LicenseNotice } from "./components/LicenseNotice.tsx";
 import type { AqtkVoice } from "yukumo.js";
 
@@ -34,6 +34,15 @@ function App() {
   const [convertKanji, setConvertKanji] = useState(true);
   const [kanji2koe, setKanji2Koe] = useState<Kanji2Koe | null>(null);
   const [isConverterLoading, setIsConverterLoading] = useState(false);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const stopPlaybackRef = useRef<(() => void) | null>(null);
+
+  const stopPlayback = () => {
+    stopPlaybackRef.current?.();
+    stopPlaybackRef.current = null;
+    setIsPlaying(false);
+  };
 
   const voiceForLoad = engineId === "aq10" ? defaultVoice("aq10") : selectedVoice;
 
@@ -64,6 +73,8 @@ function App() {
 
     return () => {
       cancelled = true;
+      stopPlaybackRef.current?.();
+      stopPlaybackRef.current = null;
       if (engine) {
         engine.destroy();
       }
@@ -112,6 +123,27 @@ function App() {
       return null;
     }
   }, [convertKanji, kanji2koe, talkText]);
+
+  const makeWav = (): Uint8Array | null => {
+    if (talkEngine == null) {
+      return null;
+    }
+    let koe = talkText;
+    if (convertKanji) {
+      if (kanji2koe == null) {
+        return null;
+      }
+      koe = kanji2koe.convert(talkText);
+    }
+    return synthesize(
+      talkEngine,
+      engineId,
+      selectedVoice,
+      koe,
+      speed,
+      aq10Params
+    );
+  };
 
   return (
     <>
@@ -165,38 +197,45 @@ function App() {
           convertKanji={convertKanji}
           onChange={setTalkText}
         />
-        <PlayButton
-          disabled={playDisabled}
+        <AudioActions
           loading={isLoading || isConverterLoading}
-          onClick={async () => {
-            if (talkEngine == null) {
-              console.error("talkEngine is null");
-              return;
-            }
-            let koe = talkText;
-            if (convertKanji) {
-              if (kanji2koe == null) {
-                console.error("kanji2koe is null");
-                return;
-              }
-              try {
-                koe = kanji2koe.convert(talkText);
-              } catch (e) {
-                console.error(e);
-                alert(e);
-                return;
-              }
-            }
+          playDisabled={playDisabled}
+          stopDisabled={!isPlaying}
+          downloadDisabled={playDisabled}
+          onPlay={async () => {
             console.time("talkEngine.run");
             try {
-              await playWav(
-                synthesize(talkEngine, engineId, selectedVoice, koe, speed, aq10Params)
-              );
+              const wav = makeWav();
+              if (wav == null) {
+                return;
+              }
+              stopPlayback();
+              const playback = createPlayback(wav, () => {
+                stopPlaybackRef.current = null;
+                setIsPlaying(false);
+              });
+              stopPlaybackRef.current = playback.stop;
+              setIsPlaying(true);
+              await playback.audio.play();
             } catch (e) {
+              stopPlayback();
               console.error(e);
               alert(e);
             }
             console.timeEnd("talkEngine.run");
+          }}
+          onStop={stopPlayback}
+          onDownload={() => {
+            try {
+              const wav = makeWav();
+              if (wav == null) {
+                return;
+              }
+              downloadWav(wav, wavFilename(talkText));
+            } catch (e) {
+              console.error(e);
+              alert(e);
+            }
           }}
         />
         <LicenseNotice />
