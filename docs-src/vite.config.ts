@@ -12,8 +12,9 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ["js7z-tools"],
+    exclude: ["js7z-tools", "kanji2koe-openjtalk"],
   },
+  assetsInclude: ["**/*.wasm"],
   build: {
     outDir: "../docs",
   },

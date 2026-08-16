@@ -10,11 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "yukumo.js": "file:..",
     "ax-x86": "^0.6.0",
+    "kanji2koe-openjtalk": "^0.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "v86": "^0.5.319"
+    "v86": "^0.5.319",
+    "yukumo.js": "file:.."
   },
   "devDependencies": {
     "@types/react": "^18.2.56",
