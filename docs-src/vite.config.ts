@@ -5,6 +5,9 @@ import path from "path";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  worker: {
+    format: "es",
+  },
   resolve: {
     alias: {
       "yukumo.js": path.resolve(__dirname, "../src/index.ts"),
@@ -13,10 +16,14 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ["js7z-tools", "kanji2koe-openjtalk"],
+    esbuildOptions: {
+      target: "esnext",
+    },
   },
   assetsInclude: ["**/*.wasm"],
   build: {
     outDir: "../docs",
+    target: "esnext",
   },
   base: "./",
   server: {
