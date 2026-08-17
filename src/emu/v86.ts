@@ -7,6 +7,7 @@
  */
 
 import { V86 } from "v86";
+import { getData } from "../assets/fetch.js";
 
 // v86 register indices (matching cpu.reg32 Int32Array layout)
 export const REG_EAX = 0;
@@ -83,7 +84,12 @@ export class V86Emu {
       multiboot: { buffer: bin },
     };
     if (wasmPath) {
+      const wasmBytes = await getData(wasmPath);
       v86Options.wasm_path = wasmPath;
+      v86Options.wasm_fn = async (imports: WebAssembly.Imports) => {
+        const { instance } = await WebAssembly.instantiate(wasmBytes, imports);
+        return instance.exports;
+      };
     }
 
     this.emulator = new V86(v86Options);

@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
+import path from "node:path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -12,27 +12,24 @@ export default defineConfig({
     alias: [
       {
         find: "yukumo.js/lang/zh",
-        replacement: path.resolve(__dirname, "../src/lang/zh/index.ts"),
+        replacement: path.resolve(import.meta.dirname, "../src/lang/zh/index.ts"),
       },
       {
         find: "yukumo.js/lang",
-        replacement: path.resolve(__dirname, "../src/lang/index.ts"),
+        replacement: path.resolve(import.meta.dirname, "../src/lang/index.ts"),
       },
       {
         find: "yukumo.js",
-        replacement: path.resolve(__dirname, "../src/index.ts"),
+        replacement: path.resolve(import.meta.dirname, "../src/index.ts"),
       },
       {
         find: "v86",
-        replacement: path.resolve(__dirname, "node_modules/v86"),
+        replacement: path.resolve(import.meta.dirname, "node_modules/v86"),
       },
     ],
   },
   optimizeDeps: {
     exclude: ["js7z-tools", "kanji2koe-openjtalk"],
-    esbuildOptions: {
-      target: "esnext",
-    },
   },
   assetsInclude: ["**/*.wasm"],
   build: {
