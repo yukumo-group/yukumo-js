@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/I18nProvider.tsx";
+
 export function AudioActions({
   loading,
   playDisabled,
@@ -15,16 +17,18 @@ export function AudioActions({
   onStop: () => void;
   onDownload: () => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}>
       <button disabled={playDisabled} onClick={onPlay}>
-        {loading ? "Loading..." : "PLAY!"}
+        {loading ? t.loading : t.play}
       </button>
       <button disabled={stopDisabled} onClick={onStop}>
-        Stop
+        {t.stop}
       </button>
       <button disabled={downloadDisabled} onClick={onDownload}>
-        Download WAV
+        {t.download}
       </button>
     </div>
   );

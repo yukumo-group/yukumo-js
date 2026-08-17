@@ -1,37 +1,66 @@
+import { Fragment } from "react";
+import { useI18n } from "../i18n/I18nProvider.tsx";
+
+function LinkedText({
+  template,
+  links,
+}: {
+  template: string;
+  links: Record<string, { href: string; label: string }>;
+}) {
+  const parts = template.split(/(\{\w+\})/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        const match = part.match(/^\{(\w+)\}$/);
+        if (match) {
+          const link = links[match[1]];
+          if (link) {
+            return (
+              <a key={i} href={link.href} target="_blank" rel="noreferrer">
+                {link.label}
+              </a>
+            );
+          }
+        }
+        return <Fragment key={i}>{part}</Fragment>;
+      })}
+    </>
+  );
+}
+
 export function LicenseNotice() {
+  const { t } = useI18n();
+
   return (
     <div style={{ marginTop: "2rem", fontSize: "0.8rem", color: "#666" }}>
-      <p>AquesTalkを使用しています</p>
-      <p>AquesTalkの著作権は株式会社アクエストに帰属します。</p>
+      <p>{t.licenseAquestalk}</p>
+      <p>{t.licenseCopyright}</p>
       <p>
-        漢字変換には{" "}
-        <a
-          href="https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM"
-          target="_blank"
-          rel="noreferrer"
-        >
-          kanji2koe-openjtalk
-        </a>{" "}
-        を使用しています（AqKanji2Koe とは無関係の再実装です）。
+        <LinkedText
+          template={t.licenseKanji}
+          links={{
+            link: {
+              href: "https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM",
+              label: "kanji2koe-openjtalk",
+            },
+          }}
+        />
       </p>
       <p>
-        中文 → koe は Love-Kogasa の zh-yukkuri.js を移植したものです（
-        <a
-          href="https://github.com/Love-Kogasa/pinyinToKana.js"
-          target="_blank"
-          rel="noreferrer"
-        >
-          pinyin-to-kana
-        </a>
-        {" / "}
-        <a
-          href="https://github.com/creeperyang/pinyin"
-          target="_blank"
-          rel="noreferrer"
-        >
-          tiny-pinyin
-        </a>
-        ）。
+        <LinkedText
+          template={t.licenseZh}
+          links={{
+            pinyin: {
+              href: "https://github.com/Love-Kogasa/pinyinToKana.js",
+              label: "pinyin-to-kana",
+            },
+            tiny: {
+              href: "https://github.com/creeperyang/pinyin",
+              label: "tiny-pinyin",
+            },
+          }}
+        />
       </p>
     </div>
   );

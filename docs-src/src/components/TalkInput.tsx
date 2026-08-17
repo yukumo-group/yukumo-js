@@ -1,11 +1,6 @@
+import { useI18n } from "../i18n/I18nProvider.tsx";
 import { Field } from "./Field.tsx";
 import type { ConvertMode } from "./ConvertModeSelect.tsx";
-
-const PLACEHOLDERS: Record<ConvertMode, string> = {
-  none: "喋らせたい文字を入力...",
-  ja: "漢字かな交じり文を入力...",
-  zh: "输入中文...",
-};
 
 export function TalkInput({
   value,
@@ -18,6 +13,14 @@ export function TalkInput({
   convertMode: ConvertMode;
   onChange: (text: string) => void;
 }) {
+  const { t } = useI18n();
+
+  const placeholders: Record<ConvertMode, string> = {
+    none: t.placeholderNone,
+    ja: t.placeholderJa,
+    zh: t.placeholderZh,
+  };
+
   return (
     <Field>
       <textarea
@@ -29,7 +32,7 @@ export function TalkInput({
         }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={PLACEHOLDERS[convertMode]}
+        placeholder={placeholders[convertMode]}
       />
       {convertedKoe != null && (
         <p

@@ -1,4 +1,5 @@
 import { ENGINES, type EngineId } from "../engines.ts";
+import { useI18n } from "../i18n/I18nProvider.tsx";
 import { Field } from "./Field.tsx";
 
 export function EngineSelect({
@@ -10,10 +11,12 @@ export function EngineSelect({
   disabled: boolean;
   onChange: (id: EngineId) => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <Field>
       <label htmlFor="engine-select" style={{ marginRight: "0.5rem" }}>
-        Engine:
+        {t.engine}:
       </label>
       <select
         id="engine-select"

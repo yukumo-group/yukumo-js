@@ -24,10 +24,16 @@ import {
 import { TalkInput } from "./components/TalkInput.tsx";
 import { AudioActions } from "./components/AudioActions.tsx";
 import { LicenseNotice } from "./components/LicenseNotice.tsx";
+import { LanguageSelect } from "./components/LanguageSelect.tsx";
+import { formatMessage } from "./i18n/messages.ts";
+import { useI18n } from "./i18n/I18nProvider.tsx";
 import type { AqtkVoice } from "yukumo.js";
 import { chineseToKoe } from "yukumo.js/lang/zh";
 
 function App() {
+  const { t } = useI18n();
+  const tRef = useRef(t);
+  tRef.current = t;
   const [talkText, setTalkText] = useState("こんにちわ、せかい");
   const [engineId, setEngineId] = useState<EngineId>("aq1");
   const [selectedVoice, setSelectedVoice] = useState<AnyVoice>(defaultVoice("aq1"));
@@ -66,7 +72,9 @@ function App() {
       } catch (e) {
         if (!cancelled) {
           console.error(e);
-          alert(`Failed to load engine: ${e}`);
+          alert(
+            formatMessage(tRef.current.loadEngineFailed, { error: String(e) })
+          );
         }
       } finally {
         if (!cancelled) {
@@ -101,7 +109,9 @@ function App() {
       } catch (e) {
         console.error(e);
         if (!cancelled) {
-          alert(`Failed to load kanji2koe-openjtalk: ${e}`);
+          alert(
+            formatMessage(tRef.current.loadKanjiFailed, { error: String(e) })
+          );
           setConvertMode("none");
         }
       } finally {
@@ -157,8 +167,9 @@ function App() {
 
   return (
     <>
-      <h1>yukumo.js Demo</h1>
+      <h1>{t.title}</h1>
       <div className="card">
+        <LanguageSelect />
         <EngineSelect
           value={engineId}
           disabled={isLoading}

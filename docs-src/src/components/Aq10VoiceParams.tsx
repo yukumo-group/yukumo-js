@@ -1,27 +1,8 @@
 import type { AqtkVoice } from "yukumo.js";
 import { VoiceBase } from "yukumo.js";
+import { useI18n } from "../i18n/I18nProvider.tsx";
 import { Field } from "./Field.tsx";
 import { ParamSlider } from "./ParamSlider.tsx";
-
-const BASE_OPTIONS: { id: number; label: string }[] = [
-  { id: VoiceBase.F1E, label: "F1E (女声)" },
-  { id: VoiceBase.F2E, label: "F2E (女声)" },
-  { id: VoiceBase.M1E, label: "M1E (男声)" },
-];
-
-const SLIDERS: {
-  key: Exclude<keyof AqtkVoice, "bas">;
-  label: string;
-  min: number;
-  max: number;
-}[] = [
-  { key: "spd", label: "話速", min: 50, max: 300 },
-  { key: "vol", label: "音量", min: 0, max: 300 },
-  { key: "pit", label: "高さ", min: 20, max: 200 },
-  { key: "acc", label: "アクセント", min: 0, max: 200 },
-  { key: "lmd", label: "音程１", min: 0, max: 200 },
-  { key: "fsc", label: "音程２", min: 50, max: 200 },
-];
 
 export function Aq10VoiceParams({
   value,
@@ -30,25 +11,50 @@ export function Aq10VoiceParams({
   value: AqtkVoice;
   onChange: (next: AqtkVoice) => void;
 }) {
+  const { t } = useI18n();
+
+  const baseOptions = [
+    { id: VoiceBase.F1E, label: t.basF1e },
+    { id: VoiceBase.F2E, label: t.basF2e },
+    { id: VoiceBase.M1E, label: t.basM1e },
+  ];
+
+  const sliders: {
+    key: Exclude<keyof AqtkVoice, "bas">;
+    label: string;
+    min: number;
+    max: number;
+  }[] = [
+    { key: "spd", label: t.spd, min: 50, max: 300 },
+    { key: "vol", label: t.vol, min: 0, max: 300 },
+    { key: "pit", label: t.pit, min: 20, max: 200 },
+    { key: "acc", label: t.acc, min: 0, max: 200 },
+    { key: "lmd", label: t.lmd, min: 0, max: 200 },
+    { key: "fsc", label: t.fsc, min: 50, max: 200 },
+  ];
+
   return (
     <div style={{ textAlign: "left" }}>
       <Field>
-        <label htmlFor="aq10-bas" style={{ marginRight: "0.5rem", display: "inline-block", minWidth: "5.5em" }}>
-          基本素片:
+        <label
+          htmlFor="aq10-bas"
+          style={{ marginRight: "0.5rem", display: "inline-block", minWidth: "5.5em" }}
+        >
+          {t.bas}:
         </label>
         <select
           id="aq10-bas"
           value={value.bas}
           onChange={(e) => onChange({ ...value, bas: parseInt(e.target.value) })}
         >
-          {BASE_OPTIONS.map((opt) => (
+          {baseOptions.map((opt) => (
             <option key={opt.id} value={opt.id}>
               {opt.label}
             </option>
           ))}
         </select>
       </Field>
-      {SLIDERS.map((slider) => (
+      {sliders.map((slider) => (
         <ParamSlider
           key={slider.key}
           id={`aq10-${slider.key}`}

@@ -28,43 +28,43 @@ export const ENGINES: { id: EngineId; label: string }[] = [
   { id: "aq10", label: "AquesTalk10" },
 ];
 
-export const AQ1_VOICES: { id: Voice; label: string }[] = [
-  { id: "f1", label: "女声1 (f1)" },
-  { id: "f2", label: "女声2 (f2)" },
-  { id: "imd1", label: "中性 (imd1)" },
-  { id: "m1", label: "男声1 (m1)" },
-  { id: "m2", label: "男声2 (m2)" },
-  { id: "jgr", label: "機械1 (jgr)" },
-  { id: "dvd", label: "機械2 (dvd)" },
-  { id: "r1", label: "ロボット (r1)" },
+export const AQ1_VOICES: Voice[] = [
+  "f1",
+  "f2",
+  "imd1",
+  "m1",
+  "m2",
+  "jgr",
+  "dvd",
+  "r1",
 ];
 
-export const AQ2_VOICES: { id: AquesTalk2Voice; label: string }[] = [
-  { id: "f1c", label: "女声 (f1c)" },
-  { id: "f3a", label: "女声 (f3a)" },
-  { id: "f4", label: "女声 (f4)" },
-  { id: "mf1", label: "中性 (mf1)" },
-  { id: "mf2", label: "中性 (mf2)" },
-  { id: "m4b", label: "男声 (m4b)" },
-  { id: "m5", label: "男声 (m5)" },
-  { id: "rm", label: "男声 (rm)" },
-  { id: "rm3", label: "男声 (rm3)" },
-  { id: "huskey", label: "ハスキー (huskey)" },
-  { id: "rb2", label: "ロボット (rb2)" },
-  { id: "rb3", label: "ロボット (rb3)" },
-  { id: "robo", label: "ロボット (robo)" },
-  { id: "yukkuri", label: "ゆっくり (yukkuri)" },
+export const AQ2_VOICES: AquesTalk2Voice[] = [
+  "f1c",
+  "f3a",
+  "f4",
+  "mf1",
+  "mf2",
+  "m4b",
+  "m5",
+  "rm",
+  "rm3",
+  "huskey",
+  "rb2",
+  "rb3",
+  "robo",
+  "yukkuri",
 ];
 
-export const AQ10_VOICES: { id: Aq10VoiceChoice; label: string }[] = [
-  { id: "f1", label: "女声 F1 (f1)" },
-  { id: "f2", label: "女声 F2 (f2)" },
-  { id: "f3", label: "女声 F3 (f3)" },
-  { id: "m1", label: "男声 M1 (m1)" },
-  { id: "m2", label: "男声 M2 (m2)" },
-  { id: "r1", label: "ロボット R1 (r1)" },
-  { id: "r2", label: "ロボット R2 (r2)" },
-  { id: AQ10_CUSTOM_VOICE, label: "カスタム" },
+export const AQ10_VOICES: Aq10VoiceChoice[] = [
+  "f1",
+  "f2",
+  "f3",
+  "m1",
+  "m2",
+  "r1",
+  "r2",
+  AQ10_CUSTOM_VOICE,
 ];
 
 export function aq10PresetParams(voice: AquesTalk10Voice): AqtkVoice {
@@ -75,14 +75,14 @@ export function isAq10Preset(voice: AnyVoice): voice is AquesTalk10Voice {
   return voice !== AQ10_CUSTOM_VOICE && voice in AQUES_TALK10_VOICE_PRESETS;
 }
 
-export function voicesFor(engineId: EngineId) {
+export function voicesFor(engineId: EngineId): AnyVoice[] {
   if (engineId === "aq1") return AQ1_VOICES;
   if (engineId === "aq2") return AQ2_VOICES;
   return AQ10_VOICES;
 }
 
 export function defaultVoice(engineId: EngineId): AnyVoice {
-  return voicesFor(engineId)[0].id;
+  return voicesFor(engineId)[0];
 }
 
 export async function loadTalkEngine(
