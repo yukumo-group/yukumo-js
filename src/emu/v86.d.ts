@@ -5,6 +5,7 @@ declare module "v86" {
       memory_size?: number;
       vga_memory_size?: number;
       autostart?: boolean;
+      disable_speaker?: boolean;
       bios?: { url?: string; buffer?: ArrayBuffer };
       vga_bios?: { url?: string; buffer?: ArrayBuffer };
       multiboot?: { url?: string; buffer?: ArrayBuffer };

@@ -13,7 +13,7 @@ DEMO: [https://aquestalk-js.y52.dev](https://aquestalk-js.y52.dev)
 - **AquesTalk2** 音声 (phont): `f1c`, `f3a`, `f4`, `mf1`, `mf2`, `m4b`, `m5`, `rm`, `rm3`, `huskey`, `rb2`, `rb3`, `robo`, `yukkuri`
 - **AquesTalk10** プリセット: `f1`, `f2`, `f3`, `m1`, `m2`, `r1`, `r2`（またはカスタム `AqtkVoice`）
 - TypeScript対応
-- [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM) / [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk) と組み合わせて漢字かな交じり文を読み上げ可能
+- 同梱の **AqKanji2Koe**（`yukumo.js/lang/kanji2koe`）で漢字かな交じり文を読み上げ可能
 - 中国語（普通話）→ koe は `yukumo.js/lang/zh`
 
 ## インストール
@@ -60,27 +60,28 @@ AquesTalk1 / AquesTalk10 は DLL がエクスポートしていれば `SetDevKey
 
 ## 漢字かな交じり文を読み上げる
 
-```bash
-npm install yukumo.js kanji2koe-openjtalk
-```
+AqKanji2Koe が漢字かな交じり文を音声記号列に変換します。システム辞書は音声
+DLL と同じ 7z に同梱されており、メモリ上の仮想ファイルシステム経由で DLL に
+渡されます。
 
 ```typescript
-import { load as loadAquesTalk1 } from "yukumo.js";
-import { load as loadKanji2Koe } from "kanji2koe-openjtalk";
+import { load } from "yukumo.js";
+import { loadAqKanji2Koe } from "yukumo.js/lang/kanji2koe";
 
-const kanji2koe = await loadKanji2Koe();
-const aq = await loadAquesTalk1("f1");
+const k2k = await loadAqKanji2Koe();
+const aq = await load("f1");
 
-const koe = kanji2koe.convert("今日は良い天気ですね。");
+const koe = k2k.convert("今日は良い天気ですね。"); // キョ'ーワ/イ'イ/テ'ンキデスネ。
 const wav = aq.run(koe, 100);
 
+await k2k.destroy();
 await aq.destroy();
 ```
 
-関連:
+AquesTalk pico 用のローマ字音声記号列は `convertRoman()` で取得できます。
 
-- GitHub: [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM)
-- npm: [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk)
+開発ライセンスキーを設定しない場合は評価版として動作し、ナ行・マ行がすべて
+`ヌ` になります。変換前に `setDevKey(key)` を呼ぶと制限が解除されます。
 
 ## 中国語（普通話）→ koe
 
@@ -109,6 +110,12 @@ await aq.destroy();
 ### `loadAquesTalk1` / `loadAquesTalk2` / `loadAquesTalk10`
 
 同梱 7z または独自アーカイブから読み込みます。AquesTalk2 は DLL + 音声ごとの phont、AquesTalk10 は DLL 1 本で `run()` 時に声質を指定します。
+
+### `loadAqKanji2Koe(options?)` / `loadAqKanji2KoeFromArchive(...)`
+
+`yukumo.js/lang/kanji2koe` から読み込みます。返り値の `AqKanji2Koe` は
+`convert(text)` / `convertRoman(text)` / `setDevKey(key)` / `release()` /
+`destroy()` を持ちます。
 
 ### `run(koe, speed?)`
 

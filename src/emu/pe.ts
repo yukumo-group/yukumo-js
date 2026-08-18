@@ -1,5 +1,7 @@
 export interface PEResult {
   baseAddress: number;
+  /** RVA of the module entry point (`DllMain` thunk for DLLs). */
+  entryPoint: number;
   exports: Record<string, number>;
   iatHooks: { [key: string]: { rva: number; target: number } };
   adjustFdivRVA: number;
@@ -38,6 +40,7 @@ export function parsePE(buffer: ArrayBuffer): PEResult {
     throw new Error("Only PE32 (32-bit) is supported");
   }
 
+  const entryPoint = view.getUint32(optionalHeaderOffset + 16, true);
   const imageBase = view.getUint32(optionalHeaderOffset + 28, true);
 
   // Data Directories
@@ -155,6 +158,7 @@ export function parsePE(buffer: ArrayBuffer): PEResult {
 
   return {
     baseAddress: imageBase,
+    entryPoint,
     exports,
     iatHooks,
     adjustFdivRVA,

@@ -101,6 +101,7 @@ describe("parsePE", () => {
 
     expect(result).toEqual({
       baseAddress: imageBase,
+      entryPoint: 0,
       exports: {},
       iatHooks: {},
       adjustFdivRVA: 0,

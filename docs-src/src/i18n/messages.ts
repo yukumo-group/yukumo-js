@@ -54,7 +54,7 @@ export const messages: Record<Locale, Messages> = {
     speed: "話速",
     convert: "変換",
     convertNone: "なし (koe)",
-    convertJa: "日本語 (kanji2koe-openjtalk)",
+    convertJa: "日本語 (AqKanji2Koe)",
     convertZh: "中文 (chineseToKoe)",
     convertLoading: "変換器を読み込み中...",
     placeholderNone: "喋らせたい文字を入力...",
@@ -67,7 +67,7 @@ export const messages: Record<Locale, Messages> = {
     licenseAquestalk: "AquesTalkを使用しています",
     licenseCopyright: "AquesTalkの著作権は株式会社アクエストに帰属します。",
     licenseKanji:
-      "漢字変換には {link} を使用しています（AqKanji2Koe とは無関係の再実装です）。",
+      "漢字かな交じり文の変換には {link}（株式会社アクエスト）を使用しています。",
     licenseZh:
       "中文 → koe は Love-Kogasa の zh-yukkuri.js を移植したものです（{pinyin} / {tiny}）。",
     bas: "基本素片",
@@ -81,7 +81,7 @@ export const messages: Record<Locale, Messages> = {
     basF2e: "F2E (女声)",
     basM1e: "M1E (男声)",
     loadEngineFailed: "エンジンの読み込みに失敗しました: {error}",
-    loadKanjiFailed: "kanji2koe-openjtalk の読み込みに失敗しました: {error}",
+    loadKanjiFailed: "AqKanji2Koe の読み込みに失敗しました: {error}",
     aq1Voices: {
       f1: "女声1 (f1)",
       f2: "女声2 (f2)",
@@ -127,7 +127,7 @@ export const messages: Record<Locale, Messages> = {
     speed: "Speed",
     convert: "Convert",
     convertNone: "None (koe)",
-    convertJa: "Japanese (kanji2koe-openjtalk)",
+    convertJa: "Japanese (AqKanji2Koe)",
     convertZh: "Chinese (chineseToKoe)",
     convertLoading: "Loading converter...",
     placeholderNone: "Enter text to speak...",
@@ -139,8 +139,7 @@ export const messages: Record<Locale, Messages> = {
     download: "Download WAV",
     licenseAquestalk: "This demo uses AquesTalk.",
     licenseCopyright: "AquesTalk copyright belongs to Aquest Corp.",
-    licenseKanji:
-      "Kanji conversion uses {link} (an independent reimplementation, unrelated to AqKanji2Koe).",
+    licenseKanji: "Kanji/kana conversion uses {link} by Aquest Corp.",
     licenseZh:
       "Chinese → koe is ported from Love-Kogasa’s zh-yukkuri.js ({pinyin} / {tiny}).",
     bas: "Base",
@@ -154,7 +153,7 @@ export const messages: Record<Locale, Messages> = {
     basF2e: "F2E (Female)",
     basM1e: "M1E (Male)",
     loadEngineFailed: "Failed to load engine: {error}",
-    loadKanjiFailed: "Failed to load kanji2koe-openjtalk: {error}",
+    loadKanjiFailed: "Failed to load AqKanji2Koe: {error}",
     aq1Voices: {
       f1: "Female 1 (f1)",
       f2: "Female 2 (f2)",
@@ -200,7 +199,7 @@ export const messages: Record<Locale, Messages> = {
     speed: "语速",
     convert: "转换",
     convertNone: "无 (koe)",
-    convertJa: "日语 (kanji2koe-openjtalk)",
+    convertJa: "日语 (AqKanji2Koe)",
     convertZh: "中文 (chineseToKoe)",
     convertLoading: "正在加载转换器...",
     placeholderNone: "输入要朗读的文本...",
@@ -212,8 +211,7 @@ export const messages: Record<Locale, Messages> = {
     download: "下载 WAV",
     licenseAquestalk: "本演示使用 AquesTalk。",
     licenseCopyright: "AquesTalk 的著作权归 Aquest 株式会社所有。",
-    licenseKanji:
-      "汉字转换使用 {link}（与 AqKanji2Koe 无关的独立重新实现）。",
+    licenseKanji: "汉字假名混合文本的转换使用 Aquest 株式会社的 {link}。",
     licenseZh:
       "中文 → koe 移植自 Love-Kogasa 的 zh-yukkuri.js（{pinyin} / {tiny}）。",
     bas: "基本素片",
@@ -227,7 +225,7 @@ export const messages: Record<Locale, Messages> = {
     basF2e: "F2E (女声)",
     basM1e: "M1E (男声)",
     loadEngineFailed: "引擎加载失败: {error}",
-    loadKanjiFailed: "kanji2koe-openjtalk 加载失败: {error}",
+    loadKanjiFailed: "AqKanji2Koe 加载失败: {error}",
     aq1Voices: {
       f1: "女声1 (f1)",
       f2: "女声2 (f2)",

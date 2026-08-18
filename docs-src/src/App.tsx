@@ -1,7 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import "./App.css";
-import type { Kanji2Koe } from "kanji2koe-openjtalk";
-import kanji2koeWasmUrl from "../node_modules/kanji2koe-openjtalk/pkg/aqkanji2koe_wasm_bg.wasm?url";
 import { createPlayback, downloadWav, wavFilename } from "./audio.ts";
 import {
   aq10PresetParams,
@@ -29,6 +27,7 @@ import { formatMessage } from "./i18n/messages.ts";
 import { useI18n } from "./i18n/I18nProvider.tsx";
 import type { AqtkVoice } from "yukumo.js";
 import { chineseToKoe } from "yukumo.js/lang/zh";
+import { useKanji2Koe } from "./useKanji2Koe.ts";
 
 function App() {
   const { t } = useI18n();
@@ -42,8 +41,11 @@ function App() {
   const [talkEngine, setTalkEngine] = useState<TalkEngine | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [convertMode, setConvertMode] = useState<ConvertMode>("ja");
-  const [kanji2koe, setKanji2Koe] = useState<Kanji2Koe | null>(null);
-  const [isConverterLoading, setIsConverterLoading] = useState(false);
+  const {
+    converter: kanji2koe,
+    loading: isConverterLoading,
+    error: converterError,
+  } = useKanji2Koe(convertMode === "ja");
 
   const [isPlaying, setIsPlaying] = useState(false);
   const stopPlaybackRef = useRef<(() => void) | null>(null);
@@ -94,36 +96,16 @@ function App() {
   }, [engineId, voiceForLoad]);
 
   useEffect(() => {
-    if (convertMode !== "ja" || kanji2koe != null) {
+    if (converterError == null) {
       return;
     }
-    let cancelled = false;
-    (async () => {
-      setIsConverterLoading(true);
-      try {
-        const { load: loadKanji2Koe } = await import("kanji2koe-openjtalk");
-        const converter = await loadKanji2Koe({ wasmPath: kanji2koeWasmUrl });
-        if (!cancelled) {
-          setKanji2Koe(converter);
-        }
-      } catch (e) {
-        console.error(e);
-        if (!cancelled) {
-          alert(
-            formatMessage(tRef.current.loadKanjiFailed, { error: String(e) })
-          );
-          setConvertMode("none");
-        }
-      } finally {
-        if (!cancelled) {
-          setIsConverterLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [convertMode, kanji2koe]);
+    alert(
+      formatMessage(tRef.current.loadKanjiFailed, {
+        error: String(converterError),
+      })
+    );
+    setConvertMode("none");
+  }, [converterError]);
 
   const converterBusy =
     convertMode === "ja" && (isConverterLoading || kanji2koe == null);

@@ -13,7 +13,7 @@ DEMO: [https://aquestalk-js.y52.dev](https://aquestalk-js.y52.dev)
 - **AquesTalk2** 音色（phont）：`f1c`, `f3a`, `f4`, `mf1`, `mf2`, `m4b`, `m5`, `rm`, `rm3`, `huskey`, `rb2`, `rb3`, `robo`, `yukkuri`
 - **AquesTalk10** 预设：`f1`, `f2`, `f3`, `m1`, `m2`, `r1`, `r2`（或自定义 `AqtkVoice`）
 - TypeScript
-- 日语汉字假名混写： [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM) / [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk)
+- 日语汉字假名混写：内置 **AqKanji2Koe**（`yukumo.js/lang/kanji2koe`）
 - 普通话中文 → AquesTalk koe（假名）：`yukumo.js/lang/zh`
 
 ## 安装
@@ -60,24 +60,27 @@ AquesTalk1 与 AquesTalk10 在 DLL 导出相应函数时提供 `SetDevKey` / `Se
 
 ## 日语汉字假名混写
 
-先用 `kanji2koe-openjtalk` 转成 koe，再交给 `run()`。
-
-```bash
-npm install yukumo.js kanji2koe-openjtalk
-```
+先用 AqKanji2Koe 转成 koe，再交给 `run()`。系统词典与音色 DLL 打包在同一个 7z
+中，并通过内存虚拟文件系统提供给被模拟的 DLL。
 
 ```typescript
-import { load as loadAquesTalk1 } from "yukumo.js";
-import { load as loadKanji2Koe } from "kanji2koe-openjtalk";
+import { load } from "yukumo.js";
+import { loadAqKanji2Koe } from "yukumo.js/lang/kanji2koe";
 
-const kanji2koe = await loadKanji2Koe();
-const aq = await loadAquesTalk1("f1");
+const k2k = await loadAqKanji2Koe();
+const aq = await load("f1");
 
-const koe = kanji2koe.convert("今日は良い天気ですね。");
+const koe = k2k.convert("今日は良い天気ですね。"); // キョ'ーワ/イ'イ/テ'ンキデスネ。
 const wav = aq.run(koe, 100);
 
+await k2k.destroy();
 await aq.destroy();
 ```
+
+AquesTalk pico 所需的罗马字音声记号列可用 `convertRoman()` 获取。
+
+未设置开发许可密钥时按评估版运行，ナ行 与 マ行 会全部变成 `ヌ`；在转换前调用
+`setDevKey(key)` 即可解除该限制。
 
 ## 中文 → koe
 
@@ -110,6 +113,11 @@ await aq.destroy();
 ### `loadAquesTalk1` / `loadAquesTalk2` / `loadAquesTalk10`
 
 可从内置 7z 或自定义归档加载。AquesTalk2 为「一个 DLL + 各音色 phont」；AquesTalk10 为单一 DLL，音色在 `run()` 时指定。
+
+### `loadAqKanji2Koe(options?)` / `loadAqKanji2KoeFromArchive(...)`
+
+从 `yukumo.js/lang/kanji2koe` 导入。返回的 `AqKanji2Koe` 提供 `convert(text)`、
+`convertRoman(text)`、`setDevKey(key)`、`release()` 与 `destroy()`。
 
 ### `run(koe, speed?)`
 

@@ -22,7 +22,8 @@
     "paths": {
       "yukumo.js": ["../src/index.ts"],
       "yukumo.js/lang": ["../src/lang/index.ts"],
-      "yukumo.js/lang/zh": ["../src/lang/zh/index.ts"]
+      "yukumo.js/lang/zh": ["../src/lang/zh/index.ts"],
+      "yukumo.js/lang/kanji2koe": ["../src/lang/kanji2koe/index.ts"]
     }
   },
   "include": ["src", "../src"],

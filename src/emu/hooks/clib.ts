@@ -2,20 +2,6 @@ import { V86Emu, REG_EAX } from "../v86.js";
 import { reg_write_uint32 } from "../helpers.js";
 import { get_arg, ret } from "../x86.js";
 
-export function malloc_hook(emu: V86Emu, ...args: unknown[]) {
-  const arg0 = get_arg(emu, 0);
-
-  const last_callback_arg = args[args.length - 1];
-  if (typeof last_callback_arg != "function") {
-    throw new Error("malloc_hook: last argument must be a function");
-  }
-  // set_mem_value
-  const address = last_callback_arg(emu, new Uint8Array(arg0).fill(0));
-
-  reg_write_uint32(emu, REG_EAX, address);
-  ret(emu);
-}
-
 export function strncmp_hook(emu: V86Emu, ..._args: unknown[]) {
   const str0 = get_arg(emu, 0);
   const str1 = get_arg(emu, 1);
@@ -59,10 +45,6 @@ export function strncpy_hook(emu: V86Emu, ..._args: unknown[]) {
 
   emu.mem_write(dest, emu.mem_read(src, count));
   reg_write_uint32(emu, REG_EAX, dest);
-  ret(emu);
-}
-
-export function free_hook(emu: V86Emu, ..._args: unknown[]) {
   ret(emu);
 }
 

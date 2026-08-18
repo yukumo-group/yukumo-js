@@ -45,9 +45,6 @@ importers:
       ax-x86:
         specifier: ^0.6.0
         version: 0.6.0
-      kanji2koe-openjtalk:
-        specifier: ^0.1.0
-        version: 0.1.0
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -719,9 +716,6 @@ packages:
 
   jszip@3.10.1:
     resolution: {integrity: sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==}
-
-  kanji2koe-openjtalk@0.1.0:
-    resolution: {integrity: sha512-4L+vNVDAX73JKPg+iCg08x2abIodHUvdxI3aGNyjLUa2u/EBh1K8qj+GHC8PknqeZx119zmuihP+Wzie2sZmqw==}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -1790,8 +1784,6 @@ snapshots:
       pako: 1.0.11
       readable-stream: 2.3.8
       setimmediate: 1.0.5
-
-  kanji2koe-openjtalk@0.1.0: {}
 
   keyv@4.5.4:
     dependencies:

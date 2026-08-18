@@ -28,6 +28,10 @@
     "./lang/zh": {
       "types": "./dist/lang/zh/index.d.ts",
       "import": "./dist/lang/zh/index.js"
+    },
+    "./lang/kanji2koe": {
+      "types": "./dist/lang/kanji2koe/index.d.ts",
+      "import": "./dist/lang/kanji2koe/index.js"
     }
   },
   "scripts": {

@@ -13,6 +13,19 @@ export function from_bytes_uint32(bytes: Uint8Array): number {
   );
 }
 
+export function encode_utf16le(str: string): Uint8Array {
+  const bytes = new Uint8Array(str.length * 2);
+  const view = new DataView(bytes.buffer);
+  for (let i = 0; i < str.length; i++) {
+    view.setUint16(i * 2, str.charCodeAt(i), true);
+  }
+  return bytes;
+}
+
+export function decode_utf16le(bytes: Uint8Array): string {
+  return new TextDecoder("utf-16le").decode(bytes);
+}
+
 export function uint8array_concat(a: Uint8Array, b: Uint8Array): Uint8Array {
   const c = new Uint8Array(a.length + b.length);
   c.set(a);

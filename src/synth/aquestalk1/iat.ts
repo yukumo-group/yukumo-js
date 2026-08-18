@@ -1,10 +1,11 @@
-import type { V86Emu } from "../../emu/index.js";
+import type { Heap, V86Emu } from "../../emu/index.js";
 import {
   malloc_hook,
   free_hook,
   heapAlloc_hook,
   heapFree_hook,
   heapReAlloc_hook,
+  heapSize_hook,
   getProcessHeap_hook,
   stdcall_return0,
   stdcall_return1,
@@ -21,17 +22,17 @@ export type JsHook = {
   arg?: unknown;
 };
 
-export function createJsHookMap(alloc: (emu: V86Emu, value: Uint8Array) => number): {
+export function createJsHookMap(heap: Heap): {
   [key: string]: JsHook;
 } {
   return {
-    malloc: { handler: malloc_hook, arg: alloc },
-    free: { handler: free_hook },
-    HeapAlloc: { handler: heapAlloc_hook, arg: alloc },
-    HeapFree: { handler: heapFree_hook },
-    HeapReAlloc: { handler: heapReAlloc_hook, arg: alloc },
+    malloc: { handler: malloc_hook(heap) },
+    free: { handler: free_hook(heap) },
+    HeapAlloc: { handler: heapAlloc_hook(heap) },
+    HeapFree: { handler: heapFree_hook(heap) },
+    HeapReAlloc: { handler: heapReAlloc_hook(heap) },
     GetProcessHeap: { handler: getProcessHeap_hook },
-    HeapSize: { handler: stdcall_return0(12) },
+    HeapSize: { handler: heapSize_hook(heap) },
     EncodePointer: { handler: stdcall_identity(4) },
     DecodePointer: { handler: stdcall_identity(4) },
     IsProcessorFeaturePresent: { handler: stdcall_return0(4) },

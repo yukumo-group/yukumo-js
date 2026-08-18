@@ -15,6 +15,13 @@ export default defineConfig({
         replacement: path.resolve(import.meta.dirname, "../src/lang/zh/index.ts"),
       },
       {
+        find: "yukumo.js/lang/kanji2koe",
+        replacement: path.resolve(
+          import.meta.dirname,
+          "../src/lang/kanji2koe/index.ts"
+        ),
+      },
+      {
         find: "yukumo.js/lang",
         replacement: path.resolve(import.meta.dirname, "../src/lang/index.ts"),
       },
@@ -29,7 +36,7 @@ export default defineConfig({
     ],
   },
   optimizeDeps: {
-    exclude: ["js7z-tools", "kanji2koe-openjtalk"],
+    exclude: ["js7z-tools"],
   },
   assetsInclude: ["**/*.wasm"],
   build: {

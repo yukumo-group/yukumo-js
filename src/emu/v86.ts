@@ -23,7 +23,12 @@ export const REG_EDI = 7;
 export interface EmuOptions {
   memorySize?: number;
   wasmPath?: string;
+  /** Abort `emu_start` if the return address is not reached in time. */
+  timeoutMs?: number;
 }
+
+const DEFAULT_TIMEOUT_MS = 60_000;
+const TIMEOUT_CHECK_INTERVAL = 4096;
 
 type HookCallback = (emu: V86Emu, ...args: any[]) => void;
 
@@ -31,18 +36,26 @@ interface HookEntry {
   callback: HookCallback;
   originalBytes: Uint8Array;
   userData: any;
-  port: number;
 }
 
-const HOOK_PORT_BASE = 0xE0;
+/**
+ * Every hook traps through this single I/O port; the handler dispatches on the
+ * trapping address. Using one port per hook would cap us at a handful of hooks.
+ */
+const HOOK_PORT = 0xE0;
+const HOOK_TRAMPOLINE_LENGTH = 2;
+
+/** `OUT 0xDF, AL` then `JMP $` - signal the stop, then spin until slice end. */
+const STOP_TRAMPOLINE = new Uint8Array([0xe6, 0xdf, 0xeb, 0xfe]);
 
 export class V86Emu {
   private emulator: any; // V86 instance
   private cpu: any; // CPU object (v86.cpu)
   private hooks: Map<number, HookEntry> = new Map();
-  private portToHook: Map<number, HookEntry> = new Map();
+  private hookPortRegistered = false;
   private _stopped = false;
-  private nextHookPort = HOOK_PORT_BASE;
+  private timeoutMs = DEFAULT_TIMEOUT_MS;
+  private fsBase = 0;
 
   constructor() {}
 
@@ -53,6 +66,7 @@ export class V86Emu {
   async init(options: EmuOptions = {}) {
     const memorySize = options.memorySize ?? 1024 * 1024 * 1024; // 1GB default
     const wasmPath = options.wasmPath;
+    this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
     // Create a minimal multiboot binary: just a HLT loop
     const MULTIBOOT_MAGIC = 0x1BADB002;
@@ -81,6 +95,7 @@ export class V86Emu {
       memory_size: memorySize,
       vga_memory_size: 0,
       autostart: false,
+      disable_speaker: true,
       multiboot: { buffer: bin },
     };
     if (wasmPath) {
@@ -173,7 +188,19 @@ export class V86Emu {
       this.cpu.segment_offsets[i] = 0;
       this.cpu.segment_limits[i] = 0xffffffff;
     }
+    // FS keeps its base so win32 code can reach the TEB at fs:[0].
+    this.cpu.segment_offsets[4] = this.fsBase;
 
+    this.cpu.update_state_flags();
+  }
+
+  /**
+   * Point the FS segment at a thread environment block. Win32 code compiled by
+   * MSVC reaches the SEH chain through `fs:[0]`.
+   */
+  set_fs_base(addr: number): void {
+    this.fsBase = addr;
+    this.cpu.segment_offsets[4] = addr;
     this.cpu.update_state_flags();
   }
 
@@ -235,33 +262,30 @@ export class V86Emu {
     callback: HookCallback,
     userData: any = null
   ): number {
-    const port = this.nextHookPort++;
-    if (port > 0xFF) {
-        // Fallback to 16-bit port if we run out of 8-bit ports.
-        // But for now, let's just use 8-bit and ensure we don't leak.
-        // Actually, we can just use 16-bit ports for all hooks to be safe.
-        // But that takes more bytes.
-        // Let's just stick to 8-bit and fix the leak in emu_start.
+    if (!this.hookPortRegistered) {
+      this.cpu.io.register_write(HOOK_PORT, this, (_value: number) => {
+        // The trapping instruction has already been retired, so the hooked
+        // address sits one trampoline behind the instruction pointer.
+        const hookAddr = this.get_eip() - HOOK_TRAMPOLINE_LENGTH;
+        const entry = this.hooks.get(hookAddr);
+        if (!entry) {
+          throw new Error(`No hook registered at 0x${hookAddr.toString(16)}`);
+        }
+        entry.callback(this, entry.userData);
+      });
+      this.hookPortRegistered = true;
     }
 
-    // Save the original byte at the hook address
+    // Save the original bytes at the hook address
     const originalBytes = new Uint8Array(this.cpu.read_blob(addr, 2));
 
     // Write the 2-byte trampoline: OUT imm8, AL
-    const trampoline = new Uint8Array([0xe6, port & 0xFF]);
-    this.cpu.write_blob(trampoline, addr);
+    this.cpu.write_blob(new Uint8Array([0xe6, HOOK_PORT]), addr);
     this.cpu.jit_dirty_cache(addr, addr + 2);
 
-    const entry: HookEntry = { callback, originalBytes, userData, port };
-    this.hooks.set(addr, entry);
-    this.portToHook.set(port, entry);
+    this.hooks.set(addr, { callback, originalBytes, userData });
 
-    // Register the I/O port handler
-    this.cpu.io.register_write(port, this, (_value: number) => {
-      entry.callback(this, entry.userData);
-    });
-
-    return port;
+    return HOOK_PORT;
   }
 
   /**
@@ -273,9 +297,6 @@ export class V86Emu {
       this.cpu.write_blob(hook.originalBytes, addr);
       this.cpu.jit_dirty_cache(addr, addr + 2);
       this.hooks.delete(addr);
-      this.portToHook.delete(hook.port);
-      // We don't unregister from cpu.io because v86 doesn't have an easy way
-      // to unregister a single port, but we can reuse the port if we managed a pool.
     }
   }
 
@@ -290,11 +311,15 @@ export class V86Emu {
     const STOP_PORT = 0xDF; // Use a dedicated port for stopping to avoid leaks
 
     // Save original bytes locally
-    const originalBytes = new Uint8Array(this.cpu.read_blob(until, 2));
+    const originalBytes = new Uint8Array(
+      this.cpu.read_blob(until, STOP_TRAMPOLINE.length)
+    );
 
-    // Write stop trampoline: OUT 0xDF, AL
-    this.cpu.write_blob(new Uint8Array([0xe6, STOP_PORT]), until);
-    this.cpu.jit_dirty_cache(until, until + 2);
+    // Write stop trampoline: OUT 0xDF, AL followed by JMP $.
+    // v86 only surfaces the stop flag between time slices, so the CPU has to
+    // idle somewhere harmless until the current slice ends.
+    this.cpu.write_blob(STOP_TRAMPOLINE, until);
+    this.cpu.jit_dirty_cache(until, until + STOP_TRAMPOLINE.length);
 
     const stopHandler = (_value: number) => {
         this._stopped = true;
@@ -304,9 +329,16 @@ export class V86Emu {
     // Run the CPU in a tight loop until stopped
     // Clear HLT state (multiboot entry point has HLT instruction)
     this.cpu.in_hlt[0] = 0;
+    const deadline = Date.now() + this.timeoutMs;
+    let iterations = 0;
     try {
       while (!this._stopped) {
         this.cpu.main_loop();
+        if (++iterations % TIMEOUT_CHECK_INTERVAL === 0 && Date.now() > deadline) {
+          throw new Error(
+            `Emulation timed out after ${this.timeoutMs}ms at EIP 0x${this.get_eip().toString(16)}`
+          );
+        }
       }
     } catch (e: any) {
       if (e === "HALT" || (typeof e === "string" && e.includes("HALT"))) {
@@ -317,7 +349,7 @@ export class V86Emu {
     } finally {
         // Always restore original bytes and invalidate JIT
         this.cpu.write_blob(originalBytes, until);
-        this.cpu.jit_dirty_cache(until, until + 2);
+        this.cpu.jit_dirty_cache(until, until + STOP_TRAMPOLINE.length);
         // We leave the STOP_PORT handler registered since it's harmless
     }
   }

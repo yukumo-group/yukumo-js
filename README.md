@@ -13,7 +13,7 @@ DEMO: [https://aquestalk-js.y52.dev](https://aquestalk-js.y52.dev)
 - **AquesTalk2** voices (phont): `f1c`, `f3a`, `f4`, `mf1`, `mf2`, `m4b`, `m5`, `rm`, `rm3`, `huskey`, `rb2`, `rb3`, `robo`, `yukkuri`
 - **AquesTalk10** presets: `f1`, `f2`, `f3`, `m1`, `m2`, `r1`, `r2` (or a custom `AqtkVoice`)
 - TypeScript
-- Japanese mixed-script text via [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM) / [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk)
+- Japanese mixed-script text → koe via the bundled **AqKanji2Koe** (`yukumo.js/lang/kanji2koe`)
 - Mandarin Chinese → AquesTalk koe (kana) via `yukumo.js/lang/zh`
 
 ## Install
@@ -60,27 +60,29 @@ AquesTalk1 and AquesTalk10 also expose `SetDevKey` / `SetUsrKey` when the DLL ex
 
 ## Japanese kanji / kana text
 
-`run()` expects koe. Convert mixed Japanese with `kanji2koe-openjtalk` first.
-
-```bash
-npm install yukumo.js kanji2koe-openjtalk
-```
+`run()` expects koe. AqKanji2Koe converts mixed kanji/kana text into one. Its
+system dictionary ships in the same 7z archive as the voice DLLs and is served
+to the emulated DLL through an in-memory filesystem.
 
 ```typescript
-import { load as loadAquesTalk1 } from "yukumo.js";
-import { load as loadKanji2Koe } from "kanji2koe-openjtalk";
+import { load } from "yukumo.js";
+import { loadAqKanji2Koe } from "yukumo.js/lang/kanji2koe";
 
-const kanji2koe = await loadKanji2Koe();
-const aq = await loadAquesTalk1("f1");
+const k2k = await loadAqKanji2Koe();
+const aq = await load("f1");
 
-const koe = kanji2koe.convert("今日は良い天気ですね。");
+const koe = k2k.convert("今日は良い天気ですね。"); // キョ'ーワ/イ'イ/テ'ンキデスネ。
 const wav = aq.run(koe, 100);
 
+await k2k.destroy();
 await aq.destroy();
 ```
 
-- GitHub: [AqKanji2Koe-OpenJTalk-WASM](https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM)
-- npm: [`kanji2koe-openjtalk`](https://www.npmjs.com/package/kanji2koe-openjtalk)
+Use `convertRoman()` instead for the romaji phonetic strings AquesTalk pico takes.
+
+Without a licence key the DLL runs as an evaluation build and renders every
+na-row and ma-row mora as `ヌ`. Call `setDevKey(key)` before converting to lift
+that restriction.
 
 ## Mandarin Chinese → koe
 
@@ -119,6 +121,11 @@ AquesTalk2: one DLL plus a `.phont` per voice.
 ### `loadAquesTalk10(voice?, options?)` / `loadAquesTalk10FromArchive(...)`
 
 AquesTalk10: one DLL; voice is applied at `run()` time.
+
+### `loadAqKanji2Koe(options?)` / `loadAqKanji2KoeFromArchive(...)`
+
+From `yukumo.js/lang/kanji2koe`. Returns an `AqKanji2Koe` with `convert(text)`,
+`convertRoman(text)`, `setDevKey(key)`, `release()` and `destroy()`.
 
 ### `run(koe, speed?)` (AQ1 / AQ2)
 

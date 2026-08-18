@@ -41,8 +41,8 @@ export function LicenseNotice() {
           template={t.licenseKanji}
           links={{
             link: {
-              href: "https://github.com/y52en/AqKanji2Koe-OpenJTalk-WASM",
-              label: "kanji2koe-openjtalk",
+              href: "https://www.a-quest.com/products/aqkanji2koe.html",
+              label: "AqKanji2Koe",
             },
           }}
         />

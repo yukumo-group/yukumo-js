@@ -81,10 +81,7 @@ export class AquesTalk1 {
     this.#heap = new Heap(emu, this.HEAP_ADDRESS, this.HEAP_LENGTH);
     this.#reset_esp();
 
-    const alloc = (e: V86Emu, value: Uint8Array) =>
-      this.#heap.set_mem_value(e, value);
-
-    const hookMap = createJsHookMap(alloc);
+    const hookMap = createJsHookMap(this.#heap);
 
     let stubAddr = this.HOOK_STUB_BASE;
     for (const [name, info] of Object.entries(this.#iatHooks)) {
