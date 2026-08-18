@@ -72,6 +72,18 @@ describe("AqKanji2Koe Integration", () => {
     expect(koe).toContain("\u30cb\u30fc\u30cf\u30aa"); // ni-hao
     expect(koe.toLowerCase()).not.toContain("hello");
   }, 30000);
+
+  it("does not duplicate ideographic full stop after a leftover", async () => {
+    const { chineseToKoe } = await import("../../../src/lang/zh/index.js");
+    // nihao, yukumo-js. ying li miao'desu.
+    const koe = chineseToKoe(
+      "\u4f60\u597d\uff0cyukumo-js\u3002\u5f71\u7c92\u55b5'\u3067\u3059\u3002",
+      k2k
+    );
+
+    expect(koe).not.toContain("\u3002\u3002");
+    expect(koe).toContain("\u30cb\u30fc\u30cf\u30aa"); // ni-hao
+  }, 30000);
 });
 
 describe("AqKanji2Koe dictionary loading", () => {

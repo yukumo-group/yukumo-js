@@ -68,6 +68,8 @@ describe("chineseToKoe", () => {
       "<hello>ニーハオ<world>"
     );
     expect(chineseToKoe("你好！", fallback)).toBe("ニーハオ<！>");
+    expect(chineseToKoe("你好-hello", fallback)).toBe("ニーハオ<-hello>");
+    expect(chineseToKoe("hello-world", fallback)).toBe("<hello-world>");
   });
 
   it("does not call fallback when the Mandarin pipeline already produced koe", () => {
@@ -91,6 +93,17 @@ describe("applyKoeFallback", () => {
     const fallback = { convert: (chunk: string) => `<${chunk}>` };
     expect(applyKoeFallback("ニーハオhelloシージエ", fallback)).toBe(
       "ニーハオ<hello>シージエ"
+    );
+    expect(applyKoeFallback("ニーハオ-シージエ", fallback)).toBe(
+      "ニーハオ<->シージエ"
+    );
+    expect(applyKoeFallback("hello-world", fallback)).toBe("<hello-world>");
+  });
+
+  it("does not duplicate 。 that AqKanji2Koe appends before an existing 。", () => {
+    const fallback = { convert: (chunk: string) => `${chunk}。` };
+    expect(applyKoeFallback("hello。ニーハオ。", fallback)).toBe(
+      "hello。ニーハオ。"
     );
   });
 });

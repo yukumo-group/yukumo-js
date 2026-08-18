@@ -33,14 +33,14 @@ function App() {
   const { t } = useI18n();
   const tRef = useRef(t);
   tRef.current = t;
-  const [talkText, setTalkText] = useState("你好，yukumo-js。影粒喵です。");
+  const [talkText, setTalkText] = useState("你好，yukumo-js。影粒喵'です。");
   const [engineId, setEngineId] = useState<EngineId>("aq1");
   const [selectedVoice, setSelectedVoice] = useState<AnyVoice>(defaultVoice("aq1"));
   const [speed, setSpeed] = useState(100);
   const [aq10Params, setAq10Params] = useState<AqtkVoice>(aq10PresetParams("f1"));
   const [talkEngine, setTalkEngine] = useState<TalkEngine | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [convertMode, setConvertMode] = useState<ConvertMode>("ja");
+  const [convertMode, setConvertMode] = useState<ConvertMode>("zh");
   const needsKanji2Koe = convertMode === "ja" || convertMode === "zh";
   const {
     converter: kanji2koe,
