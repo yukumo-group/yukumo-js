@@ -33,7 +33,7 @@ function App() {
   const { t } = useI18n();
   const tRef = useRef(t);
   tRef.current = t;
-  const [talkText, setTalkText] = useState("こんにちわ、せかい");
+  const [talkText, setTalkText] = useState("你好，yukumo-js。影粒喵です。");
   const [engineId, setEngineId] = useState<EngineId>("aq1");
   const [selectedVoice, setSelectedVoice] = useState<AnyVoice>(defaultVoice("aq1"));
   const [speed, setSpeed] = useState(100);
@@ -41,11 +41,12 @@ function App() {
   const [talkEngine, setTalkEngine] = useState<TalkEngine | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [convertMode, setConvertMode] = useState<ConvertMode>("ja");
+  const needsKanji2Koe = convertMode === "ja" || convertMode === "zh";
   const {
     converter: kanji2koe,
     loading: isConverterLoading,
     error: converterError,
-  } = useKanji2Koe(convertMode === "ja");
+  } = useKanji2Koe(needsKanji2Koe);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const stopPlaybackRef = useRef<(() => void) | null>(null);
@@ -108,7 +109,7 @@ function App() {
   }, [converterError]);
 
   const converterBusy =
-    convertMode === "ja" && (isConverterLoading || kanji2koe == null);
+    needsKanji2Koe && (isConverterLoading || kanji2koe == null);
   const playDisabled = talkEngine == null || isLoading || converterBusy;
   const convertedKoe = useMemo(() => {
     try {
@@ -116,7 +117,7 @@ function App() {
         return kanji2koe == null ? null : kanji2koe.convert(talkText);
       }
       if (convertMode === "zh") {
-        return chineseToKoe(talkText);
+        return kanji2koe == null ? null : chineseToKoe(talkText, kanji2koe);
       }
     } catch {
       return null;
@@ -135,7 +136,10 @@ function App() {
       }
       koe = kanji2koe.convert(talkText);
     } else if (convertMode === "zh") {
-      koe = chineseToKoe(talkText);
+      if (kanji2koe == null) {
+        return null;
+      }
+      koe = chineseToKoe(talkText, kanji2koe);
     }
     return synthesize(
       talkEngine,
@@ -149,9 +153,11 @@ function App() {
 
   return (
     <>
+      <header className="lang-bar">
+        <LanguageSelect />
+      </header>
       <h1>{t.title}</h1>
       <div className="card">
-        <LanguageSelect />
         <EngineSelect
           value={engineId}
           disabled={isLoading}
@@ -191,7 +197,7 @@ function App() {
         <ConvertModeSelect
           value={convertMode}
           disabled={false}
-          loading={convertMode === "ja" && isConverterLoading}
+          loading={needsKanji2Koe && isConverterLoading}
           onChange={setConvertMode}
         />
         <TalkInput

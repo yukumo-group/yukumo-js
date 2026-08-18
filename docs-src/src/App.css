@@ -33,6 +33,21 @@
   }
 }
 
+.lang-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 1rem;
+}
+
+.lang-bar > div {
+  margin-bottom: 0;
+}
+
 .card {
   padding: 2em;
 }

@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   ChineseToKoe,
+  applyKoeFallback,
   chineseToKoe,
   numberToChineseWords,
   replaceNumbersWithChinese,
@@ -58,5 +59,38 @@ describe("chineseToKoe", () => {
   it("accepts a converter instance", () => {
     const converter = new ChineseToKoe({ commaPause: false });
     expect(converter.koe("你好 世界")).toBe("ニーハオ シージエ");
+  });
+
+  it("leaves Latin leftovers for an AqKanji2Koe-style fallback", () => {
+    const fallback = { convert: (chunk: string) => `<${chunk}>` };
+    expect(chineseToKoe("你好hello", fallback)).toBe("ニーハオ<hello>");
+    expect(chineseToKoe("hello你好world", fallback)).toBe(
+      "<hello>ニーハオ<world>"
+    );
+    expect(chineseToKoe("你好！", fallback)).toBe("ニーハオ<！>");
+  });
+
+  it("does not call fallback when the Mandarin pipeline already produced koe", () => {
+    const convert = vi.fn((chunk: string) => chunk);
+    expect(chineseToKoe("你好 世界", { fallback: { convert } })).toBe(
+      "ニーハオ,シージエ"
+    );
+    expect(convert).not.toHaveBeenCalled();
+  });
+
+  it("accepts fallback via options", () => {
+    const converter = new ChineseToKoe({
+      fallback: { convert: (chunk: string) => `[${chunk}]` },
+    });
+    expect(converter.koe("你好hello")).toBe("ニーハオ[hello]");
+  });
+});
+
+describe("applyKoeFallback", () => {
+  it("converts only non-koe runs", () => {
+    const fallback = { convert: (chunk: string) => `<${chunk}>` };
+    expect(applyKoeFallback("ニーハオhelloシージエ", fallback)).toBe(
+      "ニーハオ<hello>シージエ"
+    );
   });
 });

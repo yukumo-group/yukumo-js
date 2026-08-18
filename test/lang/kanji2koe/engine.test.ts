@@ -63,6 +63,15 @@ describe("AqKanji2Koe Integration", () => {
   it("rejects a dummy development key", () => {
     expect(k2k.setDevKey("dummy-dev-key")).toBe(1);
   }, 30000);
+
+  it("converts chineseToKoe leftovers via AqKanji2Koe fallback", async () => {
+    const { chineseToKoe } = await import("../../../src/lang/zh/index.js");
+    const koe = chineseToKoe("\u4f60\u597dhello", k2k);
+
+    expect(koe).toMatch(KOE_PATTERN);
+    expect(koe).toContain("\u30cb\u30fc\u30cf\u30aa"); // ni-hao
+    expect(koe.toLowerCase()).not.toContain("hello");
+  }, 30000);
 });
 
 describe("AqKanji2Koe dictionary loading", () => {
