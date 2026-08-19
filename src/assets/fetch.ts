@@ -4,8 +4,25 @@ export function isNodeRuntime(): boolean {
   return !!proc?.versions?.node;
 }
 
+const dataCache = new Map<string, Promise<ArrayBuffer>>();
+
 export async function getData(url: string | URL): Promise<ArrayBuffer> {
   const urlStr = url.toString();
+  const cached = dataCache.get(urlStr);
+  if (cached) {
+    return cached;
+  }
+  const pending = readData(urlStr);
+  dataCache.set(urlStr, pending);
+  pending.catch(() => {
+    if (dataCache.get(urlStr) === pending) {
+      dataCache.delete(urlStr);
+    }
+  });
+  return pending;
+}
+
+async function readData(urlStr: string): Promise<ArrayBuffer> {
   if (
     isNodeRuntime() &&
     (urlStr.startsWith("file://") || !urlStr.includes("://"))
